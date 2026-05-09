@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-    <title>ระบบบันทึกงานซ่อม (Mobile Optimized)</title>
+    <title>ระบบบันทึกงานซ่อม (Google Sheets Link)</title>
     
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -17,23 +17,9 @@
         .top-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
         .brand h1 { margin: 0; font-size: 18px; letter-spacing: 0.5px; }
         .brand p { margin: 0; font-size: 11px; color: #94a3b8; }
-        
         .admin-btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 6px 12px; border-radius: 8px; font-size: 12px; cursor: pointer; }
 
-        .date-display { 
-            background: rgba(255,255,255,0.05); 
-            padding: 10px; 
-            border-radius: 10px; 
-            text-align: center; 
-            font-size: 14px; 
-            font-weight: bold;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 10px;
-        }
-
+        .date-display { background: rgba(255,255,255,0.05); padding: 10px; border-radius: 10px; text-align: center; font-size: 14px; font-weight: bold; display: flex; justify-content: center; align-items: center; gap: 15px; margin-bottom: 10px; }
         .total-pill { background: #334155; padding: 8px; border-radius: 8px; text-align: center; font-size: 13px; font-weight: bold; }
 
         /* --- Grid System --- */
@@ -48,10 +34,7 @@
         }
 
         /* --- Cards Style --- */
-        .s-card { 
-            background: #fff; padding: 12px; border-radius: 10px; border-bottom: 3px solid var(--c); 
-            display: flex; flex-direction: column; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
+        .s-card { background: #fff; padding: 12px; border-radius: 10px; border-bottom: 3px solid var(--c); display: flex; flex-direction: column; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .s-label { font-size: 12px; color: #64748b; font-weight: bold; margin-bottom: 4px; display: flex; align-items: center; gap: 5px; }
         .s-value { font-size: 20px; font-weight: 900; color: var(--c); }
 
@@ -82,7 +65,7 @@
         /* Overlay & Modal */
         .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 200; padding: 20px; align-items: center; justify-content: center; }
         .modal { background: #fff; border-radius: 12px; padding: 20px; width: 100%; max-width: 500px; max-height: 85vh; overflow-y: auto; }
-        .history-item { padding: 10px; border-bottom: 1px solid #f1f5f9; font-size: 13px; }
+        .history-item { padding: 8px; border-bottom: 1px solid #f1f5f9; font-size: 13px; }
     </style>
 </head>
 <body>
@@ -93,14 +76,13 @@
                 <h1>📋 บันทึกงานซ่อม</h1>
                 <p>Repair Daily Record</p>
             </div>
-            <button class="admin-btn" onclick="toggleAdmin()">🔒 Admin</button>
+            <button class="admin-btn" onclick="toggleAdmin()">🔒 ดูประวัติ (Sheet)</button>
         </div>
         <div class="date-display">
-            <i class="fa-solid fa-chevron-left" style="opacity: 0.5"></i>
+            <i class="fa-solid fa-calendar-day" style="opacity: 0.5"></i>
             <span id="dateLabel">กำลังโหลดวันที่...</span>
-            <i class="fa-solid fa-chevron-right" style="opacity: 0.5"></i>
         </div>
-        <div class="total-pill">รวมทั้งหมด <span id="grandTotal">0</span> ชิ้น</div>
+        <div class="total-pill">รวมทั้งหมดในเครื่อง <span id="grandTotal">0</span> ชิ้น</div>
     </div>
 
     <div class="wrap">
@@ -111,19 +93,19 @@
     <div id="adminOverlay" class="overlay" onclick="if(event.target==this) closeAdmin()">
         <div class="modal">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                <h3 style="margin:0">📊 ประวัติบันทึกงาน</h3>
-                <button onclick="closeAdmin()" style="border:0; background:none; font-size:20px;">&times;</button>
+                <h3 style="margin:0">📊 ข้อมูลจาก Google Sheets</h3>
+                <button onclick="closeAdmin()" style="border:0; background:none; font-size:24px; cursor:pointer;">&times;</button>
             </div>
             <div id="historyContent"></div>
-            <button onclick="exportToExcel()" style="width:100%; padding:12px; background:#107c41; color:white; border:none; border-radius:8px; margin-top:15px; font-weight:bold;">
+            <button onclick="exportToExcel()" style="width:100%; padding:12px; background:#107c41; color:white; border:none; border-radius:8px; margin-top:15px; font-weight:bold; cursor:pointer;">
                 <i class="fa-solid fa-file-excel"></i> ดาวน์โหลด Excel
             </button>
         </div>
     </div>
 
     <script>
-        // แก้ไข URL ตรงนี้โดยใช้ URL จาก Google Apps Script ของคุณ
-        const SCRIPT_URL = 'ใส่_URL_สคริปต์_ของคุณที่นี่';
+        // *** สำคัญ: วาง URL ที่ได้จากการ Deploy Google Apps Script ที่นี่ ***
+        const SCRIPT_URL = 'วาง_URL_เว็บแอป_ของคุณที่นี่';
 
         const categories = [
             { id: 'wait', title: 'งานรอซ่อม', icon: '🔧', color: '#ef4444' },
@@ -133,6 +115,7 @@
         ];
 
         let data = JSON.parse(localStorage.getItem('repairData_v2')) || [];
+        let fetchedData = []; // เก็บข้อมูลที่โหลดมาจาก Sheet
 
         function render() {
             const summaryGrid = document.getElementById('summaryGrid');
@@ -153,49 +136,32 @@
                     <div class="s-card" style="--c:${cat.color}">
                         <div class="s-label">${cat.icon} ${cat.title}</div>
                         <div class="s-value">${catQty}</div>
-                    </div>
-                `;
+                    </div>`;
 
                 const itemsHtml = catItems.map(item => `
                     <div class="item" style="--c:${cat.color}">
-                        <div>
-                            <div class="item-name">${item.name}</div>
-                            <div class="item-time">${item.time} น.</div>
-                        </div>
-                        <div class="item-right">
-                            <span class="qty-badge">${item.qty}</span>
-                            <button class="del-btn" onclick="deleteItem('${item.id}')"><i class="fa-solid fa-trash-can"></i></button>
-                        </div>
-                    </div>
-                `).reverse().join('');
+                        <div><div class="item-name">${item.name}</div><div class="item-time">${item.time} น.</div></div>
+                        <div class="item-right"><span class="qty-badge">${item.qty}</span>
+                        <button class="del-btn" onclick="deleteItem('${item.id}')"><i class="fa-solid fa-trash-can"></i></button></div>
+                    </div>`).reverse().join('');
 
                 mainBoard.innerHTML += `
                     <div class="work-card" style="--c:${cat.color}">
-                        <div class="work-head">
-                            <h3>${cat.icon} ${cat.title}</h3>
-                            <span style="font-weight:900">${catQty}</span>
-                        </div>
+                        <div class="work-head"><h3>${cat.icon} ${cat.title}</h3><span style="font-weight:900">${catQty}</span></div>
                         <div class="input-zone">
-                            <div class="input-row-1">
-                                <input type="text" id="name-${cat.id}" placeholder="ระบุชื่องาน..." autocomplete="off">
-                            </div>
+                            <div class="input-row-1"><input type="text" id="name-${cat.id}" placeholder="ระบุชื่องาน..." autocomplete="off"></div>
                             <div class="input-row-2">
                                 <div class="qty-box">
                                     <button class="qty-btn" onclick="adjQty('${cat.id}', -1)">−</button>
                                     <input type="number" id="qty-${cat.id}" value="1">
                                     <button class="qty-btn" onclick="adjQty('${cat.id}', 1)">+</button>
                                 </div>
-                                <button class="btn-plus" onclick="addItem('${cat.id}')">
-                                    <i class="fa-solid fa-plus"></i>
-                                </button>
-                                <button class="btn-send" onclick="sendToSheet('${cat.id}')">
-                                    <i class="fa-solid fa-paper-plane"></i>
-                                </button>
+                                <button class="btn-plus" onclick="addItem('${cat.id}')"><i class="fa-solid fa-plus"></i></button>
+                                <button class="btn-send" onclick="sendToSheet('${cat.id}')"><i class="fa-solid fa-paper-plane"></i></button>
                             </div>
                         </div>
                         <div class="items">${itemsHtml || '<div style="text-align:center; color:#94a3b8; font-size:12px; padding:10px;">ไม่มีรายการวันนี้</div>'}</div>
-                    </div>
-                `;
+                    </div>`;
             });
             document.getElementById('grandTotal').innerText = total;
             localStorage.setItem('repairData_v2', JSON.stringify(data));
@@ -208,25 +174,17 @@
         }
 
         function addItem(catId) {
-            const nameEl = document.getElementById(`name-${catId}`);
-            const qtyEl = document.getElementById(`qty-${catId}`);
-            if(!nameEl.value.trim()) return;
-            data.push({
-                id: Date.now().toString(),
-                catId: catId,
-                name: nameEl.value,
-                qty: parseInt(qtyEl.value),
-                time: new Date().toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'})
-            });
-            nameEl.value = '';
-            qtyEl.value = 1;
-            render();
+            const n = document.getElementById(`name-${catId}`);
+            const q = document.getElementById(`qty-${catId}`);
+            if(!n.value.trim()) return;
+            data.push({ id: Date.now().toString(), catId: catId, name: n.value, qty: parseInt(q.value), time: new Date().toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'}) });
+            n.value = ''; q.value = 1; render();
         }
 
         async function sendToSheet(catId) {
-            const nameEl = document.getElementById(`name-${catId}`);
-            const qtyEl = document.getElementById(`qty-${catId}`);
-            if(!nameEl.value.trim()) return alert('กรุณากรอกชื่องาน');
+            const n = document.getElementById(`name-${catId}`);
+            const q = document.getElementById(`qty-${catId}`);
+            if(!n.value.trim()) return alert('กรุณากรอกชื่องาน');
 
             const btn = event.currentTarget;
             const originalIcon = btn.innerHTML;
@@ -236,19 +194,18 @@
             const payload = {
                 id: Date.now().toString(),
                 catId: catId,
-                name: nameEl.value,
-                qty: parseInt(qtyEl.value),
+                name: n.value,
+                qty: parseInt(q.value),
                 dateOnly: new Date().toLocaleDateString('en-CA'),
-                displayTime: new Date().toLocaleTimeString('th-TH')
+                displayTime: new Date().toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'})
             };
 
             try {
                 await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
-                data.push({...payload, time: payload.displayTime});
-                nameEl.value = '';
-                qtyEl.value = 1;
-                render();
-                alert('ส่งข้อมูลเข้า Sheet สำเร็จ!');
+                // บันทึกใส่จอและเคลียร์ฟอร์ม
+                data.push({ ...payload, time: payload.displayTime });
+                n.value = ''; q.value = 1; render();
+                alert('ส่งข้อมูลเข้า Google Sheets เรียบร้อย!');
             } catch (e) {
                 alert('เกิดข้อผิดพลาดในการส่งข้อมูล');
             } finally {
@@ -257,43 +214,44 @@
             }
         }
 
-        function deleteItem(id) {
-            if(confirm('ลบรายการนี้ใช่หรือไม่?')) { data = data.filter(i => i.id !== id); render(); }
-        }
-
-        function toggleAdmin() {
+        async function toggleAdmin() {
             const historyContent = document.getElementById('historyContent');
-            if(data.length === 0) {
-                historyContent.innerHTML = '<p style="text-align:center; color:#94a3b8;">ยังไม่มีข้อมูล</p>';
-            } else {
-                let html = '';
-                categories.forEach(cat => {
-                    const items = data.filter(i => i.catId === cat.id);
-                    if(items.length > 0) {
-                        html += `<div style="margin-bottom:10px; border-left:4px solid ${cat.color}; padding-left:10px;">
-                            <strong>${cat.icon} ${cat.title}</strong><br>
-                            ${items.map(i => `<div class="history-item">${i.time} - ${i.name} (${i.qty})</div>`).join('')}
-                        </div>`;
-                    }
-                });
-                historyContent.innerHTML = html;
-            }
             document.getElementById('adminOverlay').style.display = 'flex';
+            historyContent.innerHTML = '<div style="text-align:center; padding:20px;"><i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลดข้อมูลสดจาก Google Sheets...</div>';
+
+            try {
+                const res = await fetch(SCRIPT_URL);
+                fetchedData = await res.json();
+                
+                if(fetchedData.length === 0) {
+                    historyContent.innerHTML = '<p style="text-align:center;">ไม่พบข้อมูลในระบบ</p>';
+                } else {
+                    let html = '';
+                    categories.forEach(cat => {
+                        const items = fetchedData.filter(i => i.catId === cat.id);
+                        if(items.length > 0) {
+                            html += `<div style="margin-bottom:10px; border-left:4px solid ${cat.color}; padding-left:10px;">
+                                <strong style="color:${cat.color}">${cat.icon} ${cat.title}</strong><br>
+                                ${items.map(i => `<div class="history-item">${i.dateOnly} | ${i.displayTime} - <b>${i.name}</b> (${i.qty})</div>`).reverse().join('')}
+                            </div>`;
+                        }
+                    });
+                    historyContent.innerHTML = html;
+                }
+            } catch (e) {
+                historyContent.innerHTML = '<p style="text-align:center; color:red;">โหลดข้อมูลล้มเหลว กรุณาเช็ค URL สคริปต์</p>';
+            }
         }
 
+        function deleteItem(id) { if(confirm('ลบรายการนี้?')) { data = data.filter(i => i.id !== id); render(); } }
         function closeAdmin() { document.getElementById('adminOverlay').style.display = 'none'; }
 
         function exportToExcel() {
-            if(data.length === 0) return alert('ไม่มีข้อมูลให้ส่งออก');
-            const wsData = [["เวลา", "แผนก", "รายการ", "จำนวน"]];
-            data.forEach(i => {
-                const cat = categories.find(c => c.id === i.catId);
-                wsData.push([i.time, cat.title, i.name, i.qty]);
-            });
-            const ws = XLSX.utils.aoa_to_sheet(wsData);
+            if(fetchedData.length === 0) return alert('ไม่มีข้อมูลให้ส่งออก');
+            const ws = XLSX.utils.json_to_sheet(fetchedData);
             const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "History");
-            XLSX.writeFile(wb, "Repair_Report.xlsx");
+            XLSX.utils.book_append_sheet(wb, ws, "RepairHistory");
+            XLSX.writeFile(wb, "Repair_Data_From_Sheet.xlsx");
         }
 
         render();
