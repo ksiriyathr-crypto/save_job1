@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        /* --- CSS เดิมทั้งหมด --- */
+        /* --- CSS เดิม --- */
         * { box-sizing: border-box; }
         body { margin: 0; font-family: Tahoma, Arial, sans-serif; background: #eef2f7; color: #182235; }
         .topbar { min-height: 82px; background: #1f2b3f; color: #fff; display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 14px 40px; box-shadow: 0 6px 20px rgba(0,0,0,.12); }
@@ -40,7 +40,8 @@
         input, select, textarea { width: 100%; border: 1px solid #d8dee9; border-radius: 8px; padding: 10px 12px; font-size: 15px; outline: none; background: #fff; }
         input:focus { border-color: var(--color); box-shadow: 0 0 0 3px rgba(47,125,246,.10); }
         .qty-box { display: grid; grid-template-columns: 36px 1fr 36px; }
-        .qty-box input { text-align: center; border-radius: 0; border-left: 0; border-right: 0; }
+        .qty-box input { text-align: center; border-radius: 0; border-left: 0; border-right: 0; -moz-appearance: textfield; }
+        .qty-box input::-webkit-outer-spin-button, .qty-box input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         .qty-btn, .add-btn { border: 0; cursor: pointer; font-weight: 800; font-size: 18px; }
         .qty-btn { background: #fff; border: 1px solid #d8dee9; color: #334155; }
         .qty-btn:first-child { border-radius: 8px 0 0 8px; }
@@ -48,7 +49,7 @@
         .add-btn { background: var(--color); color: #fff; border-radius: 8px; font-size: 24px; }
         .items { min-height: 180px; padding: 14px; background: #f8fafc; }
         .item { background: #fff; border: 1px solid #e5e7eb; border-left: 5px solid var(--color); border-radius: 12px; padding: 12px; margin-bottom: 10px; display: grid; grid-template-columns: 1fr auto auto; gap: 12px; align-items: center; }
-        .item-name { font-weight: 800; margin-bottom: 3px; }
+        .item-name { font-weight: 800; margin-bottom: 3px; font-size: 15px; }
         .item-date { color: #64748b; font-size: 12px; }
         .item-qty { display: flex; align-items: center; gap: 6px; }
         .mini-btn { width: 30px; height: 30px; border-radius: 8px; border: 1px solid #e5e7eb; background: #fff; cursor: pointer; font-weight: 900; }
@@ -56,33 +57,28 @@
         .trash-btn { background: none; border: none; color: #cbd5e1; cursor: pointer; font-size: 18px; transition: color 0.2s; padding: 4px; }
         .trash-btn:hover { color: #ff2d3d; }
 
+        /* --- Admin Styles --- */
         #adminOverlay, #loginOverlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; padding: 20px; backdrop-filter: blur(5px); }
         .admin-content { background: #fff; max-width: 900px; margin: 20px auto; border-radius: 15px; padding: 25px; position: relative; box-shadow: 0 20px 40px rgba(0,0,0,0.2); overflow-y: auto; max-height: 95vh; }
         .login-content { background: #fff; max-width: 400px; margin: 100px auto; border-radius: 15px; padding: 40px; text-align: center; }
-        
         .export-container { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin-bottom: 25px; }
         .filter-row { display: grid; grid-template-columns: 1fr 1fr 120px; gap: 12px; align-items: flex-end; margin-bottom: 20px; }
         .filter-box label { display: block; font-size: 12px; font-weight: 700; color: #64748b; margin-bottom: 5px; }
         .btn-search { background: #2f7df6; color: white; border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: 600; height: 41px; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; }
-
         .btn-group-export { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-top: 10px; }
         .btn-excel-card { background: #ffffff; border: 2px solid #e2e8f0; padding: 20px 10px; border-radius: 12px; cursor: pointer; transition: all 0.3s ease; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; }
         .btn-excel-card:hover { border-color: #107c41; background: #f0fdf4; transform: translateY(-3px); }
         .btn-excel-card i { font-size: 28px; color: #107c41; }
-
         .admin-table { width: 100%; border-collapse: collapse; }
         .admin-table th { background: #f1f5f9; padding: 12px; text-align: left; font-size: 13px; color: #64748b; position: sticky; top: 0; }
         .admin-table td { border-bottom: 1px solid #f1f5f9; padding: 12px; font-size: 13px; }
         .btn-del { background: #fee2e2; color: #ef4444; border: 0; padding: 6px 12px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 11px; }
-
         .history-section { display: none; margin-top: 25px; padding-top: 20px; border-top: 2px dashed #e2e8f0; }
         .history-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 15px; }
         .history-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; position: relative; }
         .history-header { font-weight: 800; font-size: 15px; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #f1f5f9; display: flex; align-items: center; gap: 8px; }
         .history-item { display: flex; justify-content: space-between; font-size: 12px; padding: 4px 0; border-bottom: 1px solid #f8fafc; }
         .history-total-pill { margin-top: 10px; background: #f1f5f9; padding: 8px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; font-weight: bold; }
-        
-        /* สไตล์ใหม่สำหรับยอดสะสมปี */
         .yearly-badge { background: #1e293b; color: #fff; padding: 10px; border-radius: 10px; margin-top: 12px; display: flex; justify-content: space-between; align-items: center; font-size: 11px; }
         .yearly-badge b { font-size: 15px; color: #38bdf8; }
     </style>
@@ -138,7 +134,6 @@
                     </div>
                     <button class="btn-search" onclick="updateAdminView()"><i class="fa-solid fa-magnifying-glass"></i> ค้นหา</button>
                 </div>
-
                 <div style="font-weight:bold; color:#1e293b; margin-bottom:12px; font-size: 13px;">ดาวน์โหลด Excel แยกตามแผนก</div>
                 <div id="categoryExportButtons" class="btn-group-export"></div>
             </div>
@@ -191,7 +186,6 @@
 
         let data = [];
 
-        // ฟังก์ชันโหลดข้อมูลจาก Google Sheets
         async function loadData() {
             try {
                 const response = await fetch(SCRIPT_URL);
@@ -245,7 +239,9 @@
                             <div class="qty-number">${item.qty}</div>
                             <button class="mini-btn" onclick="updateItemQty('${item.id}', 1)">+</button>
                         </div>
-                        <button class="trash-btn" onclick="directDelete('${item.id}')">🗑️</button>
+                        <button class="trash-btn" onclick="directDelete('${item.id}')" title="ลบรายการนี้">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
                     </div>
                 `).join('');
 
@@ -273,78 +269,9 @@
             localStorage.setItem('repairData', JSON.stringify(data));
         }
 
-        function getFilteredData() {
-            const dayFilter = document.getElementById('filterDate').value;
-            const monthFilter = document.getElementById('filterMonth').value;
-            return data.filter(item => {
-                if (dayFilter) return item.dateOnly === dayFilter;
-                if (monthFilter) return item.dateOnly.startsWith(monthFilter);
-                return true; 
-            });
-        }
-
-        function toggleHistory() {
-            const section = document.getElementById('historySection');
-            const btn = document.getElementById('btnHistory');
-            if (section.style.display === 'block') {
-                section.style.display = 'none';
-                btn.innerHTML = '<i class="fa-solid fa-clock-rotate-left"></i> ดูสรุปประวัติแยกแผนก';
-            } else {
-                section.style.display = 'block';
-                btn.innerHTML = '<i class="fa-solid fa-eye-slash"></i> ปิดสรุปประวัติ';
-                updateHistoryGrid();
-                section.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-        }
-
-        function updateHistoryGrid() {
-            const grid = document.getElementById('historyGrid');
-            const label = document.getElementById('historyDateLabel');
-            const filtered = getFilteredData();
-            const currentYear = new Date().getFullYear().toString();
-            
-            const day = document.getElementById('filterDate').value;
-            const month = document.getElementById('filterMonth').value;
-            label.innerText = day ? `ประจำวันที่ ${day}` : (month ? `ประจำเดือน ${month}` : "แสดงข้อมูลทั้งหมด");
-
-            grid.innerHTML = categories.map(cat => {
-                const catItems = filtered.filter(i => i.catId === cat.id);
-                const catTotal = catItems.reduce((s, i) => s + i.qty, 0);
-                
-                // คำนวณยอดสะสมทั้งปี
-                const yearlyTotal = data
-                    .filter(i => i.catId === cat.id && i.dateOnly.startsWith(currentYear))
-                    .reduce((s, i) => s + i.qty, 0);
-
-                const listHtml = catItems.map(i => `
-                    <div class="history-item">
-                        <span>${i.name}</span>
-                        <span>${i.qty}</span>
-                    </div>
-                `).join('');
-
-                return `
-                    <div class="history-card" style="border-top: 4px solid ${cat.color}">
-                        <div class="history-header" style="color:${cat.color}">${cat.icon} ${cat.title}</div>
-                        <div style="max-height:100px; overflow-y:auto; padding-right:5px;">
-                            ${listHtml || '<p style="color:#cbd5e1; text-align:center; font-size:11px;">ไม่มีข้อมูล</p>'}
-                        </div>
-                        <div class="history-total-pill">
-                            <span style="font-size:11px; color:#64748b;">รวมตามช่วงเวลา:</span>
-                            <span style="color:${cat.color}; font-size:16px;">${catTotal}</span>
-                        </div>
-                        <div class="yearly-badge">
-                            <span>สะสมทั้งปี (${currentYear}):</span>
-                            <b>${yearlyTotal} ชิ้น</b>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
         async function saveItem(catId) {
             const name = document.getElementById(`input-name-${catId}`);
-            const qty = document.getElementById(`input-qty-${catId}`);
+            const qtyInput = document.getElementById(`input-qty-${catId}`);
             if (!name.value.trim()) return;
 
             const now = new Date();
@@ -355,44 +282,56 @@
                 id: Date.now().toString(),
                 catId: catId,
                 name: name.value,
-                qty: parseInt(qty.value),
+                qty: parseInt(qtyInput.value) || 1,
                 dateOnly: dateOnly,
                 timeOnly: timeOnly,
                 displayTime: now.toLocaleDateString('th-TH') + ' ' + timeOnly
             };
 
-            // แสดงที่หน้าเว็บทันที (Optimistic Update)
             data.push(newItem);
             render();
-            name.value = ''; qty.value = '1';
+            name.value = ''; qtyInput.value = '1';
 
-            // ส่งข้อมูลไป Google Sheets
             try {
                 await fetch(SCRIPT_URL, {
                     method: "POST",
                     body: JSON.stringify(newItem)
                 });
             } catch (e) {
-                console.warn("บันทึกลง Sheets ไม่สำเร็จ ข้อมูลจะถูกเก็บในเครื่องแทน");
+                console.warn("บันทึกออนไลน์ไม่สำเร็จ เก็บข้อมูลในเครื่องแล้ว");
             }
         }
 
-        // ฟังก์ชันลบข้อมูลออกจาก Admin
-        async function deleteFromAdmin(id) {
-            if(confirm('ลบรายการนี้?')) {
+        function directDelete(id) {
+            if(confirm('ยืนยันการลบรายการนี้ออกจากระบบ?')) {
                 data = data.filter(i => i.id !== id);
                 render();
-                openAdmin();
-                // หมายเหตุ: การลบใน Google Sheets จริงๆ ต้องใช้ฟังก์ชันเฉพาะทาง Script
-                // ในตัวอย่างนี้จะเน้นการจัดการข้อมูลที่แสดงผลเป็นหลัก
             }
         }
 
-        function updateAdminView() {
-            openAdmin();
-            if (document.getElementById('historySection').style.display === 'block') {
-                updateHistoryGrid();
+        function updateItemQty(id, delta) {
+            const item = data.find(i => i.id === id);
+            if(item) {
+                item.qty = Math.max(1, item.qty + delta);
+                render();
             }
+        }
+
+        function changeQtyInput(catId, delta) {
+            const input = document.getElementById(`input-qty-${catId}`);
+            let val = parseInt(input.value) || 1;
+            input.value = Math.max(1, val + delta);
+        }
+
+        // --- ระบบ Admin & Export (คงเดิม) ---
+        function getFilteredData() {
+            const dayFilter = document.getElementById('filterDate').value;
+            const monthFilter = document.getElementById('filterMonth').value;
+            return data.filter(item => {
+                if (dayFilter) return item.dateOnly === dayFilter;
+                if (monthFilter) return item.dateOnly.startsWith(monthFilter);
+                return true; 
+            });
         }
 
         function openAdmin() {
@@ -415,7 +354,7 @@
                     <td><span style="padding:4px 8px; border-radius:6px; font-size:10px; font-weight:bold; background:${catInfo.soft}; color:${catInfo.color}">${catInfo.title}</span></td>
                     <td style="font-weight:600">${item.name}</td>
                     <td style="font-weight:bold">${item.qty}</td>
-                    <td style="text-align:center"><button class="btn-del" onclick="deleteFromAdmin('${item.id}')">ลบ</button></td>
+                    <td style="text-align:center"><button class="btn-del" onclick="directDelete('${item.id}'); openAdmin();">ลบ</button></td>
                 </tr>
             `}).join('') : '<tr><td colspan="5" style="text-align:center; padding:30px; color:#94a3b8;">ไม่พบข้อมูล</td></tr>';
             
@@ -431,10 +370,58 @@
 
         function checkPassword() {
             if(document.getElementById('adminPassword').value === AUTH_PASS) {
-                closeLogin();
-                openAdmin();
+                closeLogin(); openAdmin();
                 document.getElementById('adminPassword').value = '';
             } else { alert('รหัสผ่านไม่ถูกต้อง'); }
+        }
+
+        function toggleHistory() {
+            const section = document.getElementById('historySection');
+            const btn = document.getElementById('btnHistory');
+            if (section.style.display === 'block') {
+                section.style.display = 'none';
+                btn.innerHTML = '<i class="fa-solid fa-clock-rotate-left"></i> ดูสรุปประวัติแยกแผนก';
+            } else {
+                section.style.display = 'block';
+                btn.innerHTML = '<i class="fa-solid fa-eye-slash"></i> ปิดสรุปประวัติ';
+                updateHistoryGrid();
+                section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+
+        function updateHistoryGrid() {
+            const grid = document.getElementById('historyGrid');
+            const label = document.getElementById('historyDateLabel');
+            const filtered = getFilteredData();
+            const currentYear = new Date().getFullYear().toString();
+            const day = document.getElementById('filterDate').value;
+            const month = document.getElementById('filterMonth').value;
+            label.innerText = day ? `ประจำวันที่ ${day}` : (month ? `ประจำเดือน ${month}` : "แสดงข้อมูลทั้งหมด");
+
+            grid.innerHTML = categories.map(cat => {
+                const catItems = filtered.filter(i => i.catId === cat.id);
+                const catTotal = catItems.reduce((s, i) => s + i.qty, 0);
+                const yearlyTotal = data
+                    .filter(i => i.catId === cat.id && i.dateOnly.startsWith(currentYear))
+                    .reduce((s, i) => s + i.qty, 0);
+
+                return `
+                    <div class="history-card" style="border-top: 4px solid ${cat.color}">
+                        <div class="history-header" style="color:${cat.color}">${cat.icon} ${cat.title}</div>
+                        <div style="max-height:100px; overflow-y:auto; padding-right:5px;">
+                            ${catItems.map(i => `<div class="history-item"><span>${i.name}</span><span>${i.qty}</span></div>`).join('') || '<p style="color:#cbd5e1; text-align:center; font-size:11px;">ไม่มีข้อมูล</p>'}
+                        </div>
+                        <div class="history-total-pill">
+                            <span style="font-size:11px; color:#64748b;">รวมตามช่วงเวลา:</span>
+                            <span style="color:${cat.color}; font-size:16px;">${catTotal}</span>
+                        </div>
+                        <div class="yearly-badge">
+                            <span>สะสมทั้งปี (${currentYear}):</span>
+                            <b>${yearlyTotal} ชิ้น</b>
+                        </div>
+                    </div>
+                `;
+            }).join('');
         }
 
         function exportToExcel(catId) {
@@ -442,30 +429,22 @@
             const catInfo = categories.find(c => c.id === catId);
             const catItems = sourceData.filter(item => item.catId === catId);
             if (catItems.length === 0) return alert('ไม่พบข้อมูล');
-            
             const wb = XLSX.utils.book_new();
             let wsData = [[catInfo.title], ["วันที่", "เวลา", "รายการ", "จำนวน"]];
             catItems.forEach(i => wsData.push([i.dateOnly, i.timeOnly, i.name, i.qty]));
-            
             const ws = XLSX.utils.aoa_to_sheet(wsData);
             XLSX.utils.book_append_sheet(wb, ws, "Report");
             XLSX.writeFile(wb, `Report_${catInfo.title}.xlsx`);
         }
 
-        function changeQtyInput(catId, delta) {
-            const input = document.getElementById(`input-qty-${catId}`);
-            input.value = Math.max(1, parseInt(input.value) + delta);
+        function updateAdminView() {
+            openAdmin();
+            if (document.getElementById('historySection').style.display === 'block') updateHistoryGrid();
         }
-        function updateItemQty(id, delta) {
-            const item = data.find(i => i.id === id);
-            if(item) { item.qty = Math.max(1, item.qty + delta); render(); }
-        }
-        function directDelete(id) { if(confirm('ลบรายการนี้?')) { data = data.filter(i => i.id !== id); render(); } }
+
         function clearAll() { if(confirm('ล้างข้อมูลทั้งหมด?')) { data = []; render(); closeAdmin(); } }
 
-        // เริ่มโหลดข้อมูล
         loadData();
-        // โหลดข้อมูลอัตโนมัติทุกๆ 30 วินาที เพื่อซิงค์คอมกับมือถือ
         setInterval(loadData, 30000);
     </script>
 </body>
