@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        /* --- CSS เดิม --- */
+        /* --- CSS เดิมทั้งหมด --- */
         * { box-sizing: border-box; }
         body { margin: 0; font-family: Tahoma, Arial, sans-serif; background: #eef2f7; color: #182235; }
         .topbar { min-height: 82px; background: #1f2b3f; color: #fff; display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 14px 40px; box-shadow: 0 6px 20px rgba(0,0,0,.12); }
@@ -54,6 +54,8 @@
         .item-qty { display: flex; align-items: center; gap: 6px; }
         .mini-btn { width: 30px; height: 30px; border-radius: 8px; border: 1px solid #e5e7eb; background: #fff; cursor: pointer; font-weight: 900; }
         .qty-number { min-width: 30px; text-align: center; font-weight: 900; color: var(--color); }
+        
+        /* ปุ่มลบที่เพิ่มเข้ามาใหม่ */
         .trash-btn { background: none; border: none; color: #cbd5e1; cursor: pointer; font-size: 18px; transition: color 0.2s; padding: 4px; }
         .trash-btn:hover { color: #ff2d3d; }
 
@@ -121,7 +123,6 @@
                 <h2 style="margin:0; font-size: 18px;"><i class="fa-solid fa-gears"></i> จัดการข้อมูลและรายงาน</h2>
                 <button onclick="closeAdmin()" style="cursor:pointer; border:0; background:#f1f5f9; padding:8px 15px; border-radius:8px; font-weight:600; color:#64748b;">ปิดหน้าต่าง</button>
             </div>
-
             <div class="export-container">
                 <div class="filter-row">
                     <div class="filter-box">
@@ -137,7 +138,6 @@
                 <div style="font-weight:bold; color:#1e293b; margin-bottom:12px; font-size: 13px;">ดาวน์โหลด Excel แยกตามแผนก</div>
                 <div id="categoryExportButtons" class="btn-group-export"></div>
             </div>
-
             <div style="max-height: 250px; overflow-y: auto; border: 1px solid #f1f5f9; border-radius: 10px; margin-bottom: 20px;">
                 <table class="admin-table">
                     <thead>
@@ -152,7 +152,6 @@
                     <tbody id="adminList"></tbody>
                 </table>
             </div>
-            
             <div style="display: flex; gap: 10px;">
                 <button onclick="clearAll()" style="flex: 1; padding:12px; background:#fff1f2; border:1px solid #fecdd3; color:#e11d48; font-weight:bold; cursor:pointer; border-radius:10px; font-size: 13px;">
                     <i class="fa-solid fa-trash-can"></i> ล้างข้อมูลทั้งหมด
@@ -161,7 +160,6 @@
                     <i class="fa-solid fa-clock-rotate-left"></i> ดูสรุปประวัติแยกแผนก
                 </button>
             </div>
-
             <div id="historySection" class="history-section">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
                     <h3 style="margin:0; font-size:16px;"><i class="fa-solid fa-list-check"></i> สรุปรายการงานและยอดสะสมปี</h3>
@@ -173,7 +171,6 @@
     </div>
 
     <script>
-        // --- ส่วนเชื่อมต่อ Google Sheets ---
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxRYxzVqxd1opck5KNDKWekSQGd79l9Css9J2smwFh3WJJrnfL2v0n7yOPzbn0ZngZh9g/exec"; 
         const AUTH_PASS = "1234";
 
@@ -192,12 +189,12 @@
                 data = await response.json();
                 render();
             } catch (e) {
-                console.error("เชื่อมต่อฐานข้อมูลไม่ได้, กำลังใช้ข้อมูลสำรองในเครื่อง");
                 data = JSON.parse(localStorage.getItem('repairData')) || [];
                 render();
             }
         }
 
+        // --- ปรับปรุงฟังก์ชัน Render เพื่อให้ลบได้จากหน้าแรก ---
         function render() {
             const summaryGrid = document.getElementById('summaryGrid');
             const mainBoard = document.getElementById('mainBoard');
@@ -215,6 +212,7 @@
                 const catQtyTotal = catItems.reduce((sum, item) => sum + item.qty, 0);
                 grandTotal += catQtyTotal;
 
+                // Summary Cards
                 summaryGrid.innerHTML += `
                     <div class="summary-card" style="--color:${cat.color};--soft:${cat.soft};--border:${cat.border};">
                         <div class="summary-left">
@@ -228,6 +226,7 @@
                     </div>
                 `;
 
+                // Item Rows (เพิ่มปุ่ม Trash เข้าไป)
                 let itemsHtml = catItems.map(item => `
                     <div class="item" style="--color:${cat.color}">
                         <div>
@@ -245,6 +244,7 @@
                     </div>
                 `).join('');
 
+                // Main Board (Input field เป็น type number แล้ว)
                 mainBoard.innerHTML += `
                     <div class="work-card" style="--color:${cat.color};--soft:${cat.soft};--border:${cat.border};">
                         <div class="work-head">
@@ -293,13 +293,8 @@
             name.value = ''; qtyInput.value = '1';
 
             try {
-                await fetch(SCRIPT_URL, {
-                    method: "POST",
-                    body: JSON.stringify(newItem)
-                });
-            } catch (e) {
-                console.warn("บันทึกออนไลน์ไม่สำเร็จ เก็บข้อมูลในเครื่องแล้ว");
-            }
+                await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify(newItem) });
+            } catch (e) { console.warn("บันทึกออนไลน์ไม่สำเร็จ"); }
         }
 
         function directDelete(id) {
@@ -323,7 +318,7 @@
             input.value = Math.max(1, val + delta);
         }
 
-        // --- ระบบ Admin & Export (คงเดิม) ---
+        // --- ฟังก์ชันอื่นๆ ทั้งหมด (Admin, Excel, History) ยังคงเดิม ---
         function getFilteredData() {
             const dayFilter = document.getElementById('filterDate').value;
             const monthFilter = document.getElementById('filterMonth').value;
