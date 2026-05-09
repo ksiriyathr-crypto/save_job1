@@ -2,77 +2,117 @@
 <html lang="th">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>ระบบบันทึกงานซ่อม (Balanced UI)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>ระบบบันทึกงานซ่อม (Mobile Optimized)</title>
     
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        * { box-sizing: border-box; }
-        body { margin: 0; font-family: 'Segoe UI', Tahoma, sans-serif; background: #f0f4f8; color: #1e293b; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { margin: 0; font-family: 'Segoe UI', Tahoma, sans-serif; background: #f1f5f9; color: #1e293b; }
 
-        /* --- Header & Navigation --- */
-        .topbar { background: #1e293b; color: #fff; padding: 15px 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        .top-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .brand h1 { margin: 0; font-size: 20px; }
-        .brand p { margin: 0; font-size: 12px; color: #94a3b8; }
+        /* --- Header Section --- */
+        .topbar { background: #1e293b; color: #fff; padding: 15px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+        .top-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+        .brand h1 { margin: 0; font-size: 18px; letter-spacing: 0.5px; }
+        .brand p { margin: 0; font-size: 11px; color: #94a3b8; }
         
-        .date-ctrl { display: flex; align-items: center; justify-content: center; gap: 10px; background: rgba(255,255,255,0.1); padding: 8px; border-radius: 12px; }
-        .date-box { font-weight: bold; font-size: 14px; display: flex; align-items: center; gap: 8px; }
-        .today-tag { background: #64748b; padding: 2px 8px; border-radius: 6px; font-size: 11px; }
+        .admin-btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 6px 12px; border-radius: 8px; font-size: 12px; cursor: pointer; }
 
-        .total-banner { background: #334155; text-align: center; padding: 10px; border-radius: 8px; font-weight: bold; margin-top: 10px; }
+        .date-display { 
+            background: rgba(255,255,255,0.05); 
+            padding: 10px; 
+            border-radius: 10px; 
+            text-align: center; 
+            font-size: 14px; 
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
 
-        /* --- Grid System (Responsive) --- */
-        .wrap { padding: 15px; max-width: 1400px; margin: 0 auto; }
+        .total-pill { background: #334155; padding: 8px; border-radius: 8px; text-align: center; font-size: 13px; font-weight: bold; }
+
+        /* --- Grid System (ปรับให้เป็น 2 คอลัมน์ในมือถือ) --- */
+        .wrap { padding: 12px; }
         
-        /* Summary Grid: 2 columns on mobile, 4 on desktop */
-        .summary-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px; }
-        
-        /* Board Grid: 1 column on mobile, 4 on desktop */
-        .board { display: grid; grid-template-columns: 1fr; gap: 20px; }
+        .summary-grid { 
+            display: grid; 
+            grid-template-columns: repeat(2, 1fr); /* บังคับ 2 คอลัมน์เสมอในมือถือ */
+            gap: 8px; 
+            margin-bottom: 15px; 
+        }
 
+        .board { 
+            display: grid; 
+            grid-template-columns: 1fr; /* 1 คอลัมน์ในมือถือ */
+            gap: 15px; 
+        }
+
+        /* สำหรับจอคอมพิวเตอร์ (จอใหญ่กว่า 992px) */
         @media (min-width: 992px) {
             .summary-grid { grid-template-columns: repeat(4, 1fr); }
             .board { grid-template-columns: repeat(4, 1fr); }
-            .topbar { padding: 15px 40px; }
+            .wrap { padding: 20px 40px; }
         }
 
-        /* --- Cards UI --- */
-        .s-card { background: #fff; padding: 12px; border-radius: 12px; border: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
-        .s-card b { font-size: 18px; color: var(--c); }
-        .s-info { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: bold; color: var(--c); }
-        .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--c); }
+        /* --- Cards Style --- */
+        .s-card { 
+            background: #fff; 
+            padding: 12px; 
+            border-radius: 10px; 
+            border-bottom: 3px solid var(--c); 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .s-label { font-size: 12px; color: #64748b; font-weight: bold; margin-bottom: 4px; display: flex; align-items: center; gap: 5px; }
+        .s-value { font-size: 20px; font-weight: 900; color: var(--c); }
 
-        .work-card { background: #fff; border-radius: 15px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
-        .work-head { background: var(--c); color: #fff; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; }
-        .work-head h3 { margin: 0; font-size: 16px; display: flex; align-items: center; gap: 8px; }
-        
-        /* Input Area */
-        .input-group { padding: 15px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; }
-        .input-main { display: flex; gap: 8px; margin-bottom: 10px; }
-        .qty-ctrl { display: flex; border: 1px solid #cbd5e1; border-radius: 8px; overflow: hidden; background: #fff; min-width: 110px; }
-        .qty-ctrl input { width: 40px; text-align: center; border: none; font-weight: bold; }
-        .qty-btn { border: none; background: #fff; width: 35px; cursor: pointer; font-weight: bold; color: #64748b; }
-        
-        .action-btns { display: flex; gap: 8px; }
-        .btn-add { flex: 1; background: var(--c); color: #fff; border: none; border-radius: 8px; padding: 10px; cursor: pointer; font-size: 18px; }
-        .btn-send { background: #3b82f6; color: #fff; border: none; border-radius: 8px; padding: 10px 15px; cursor: pointer; }
+        .work-card { background: #fff; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; }
+        .work-head { background: var(--c); color: #fff; padding: 12px; display: flex; justify-content: space-between; align-items: center; }
+        .work-head h3 { margin: 0; font-size: 15px; }
 
-        /* Items List */
-        .items-list { padding: 12px; min-height: 100px; max-height: 400px; overflow-y: auto; }
-        .item-row { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: #fff; border: 1px solid #f1f5f9; border-left: 4px solid var(--c); border-radius: 8px; margin-bottom: 8px; }
-        .item-info div { font-weight: bold; font-size: 14px; }
-        .item-info small { color: #94a3b8; font-size: 11px; }
+        /* --- Input Zone --- */
+        .input-zone { padding: 12px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; }
+        .input-row-1 { margin-bottom: 8px; }
+        .input-row-2 { display: flex; gap: 8px; align-items: center; }
+        
+        input[type="text"] { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; }
+        
+        .qty-box { display: flex; border: 1px solid #cbd5e1; border-radius: 8px; overflow: hidden; background: #fff; min-width: 100px; }
+        .qty-box input { width: 40px; border: none; text-align: center; font-weight: bold; pointer-events: none; }
+        .qty-btn { width: 30px; border: none; background: #fff; font-size: 18px; font-weight: bold; color: #64748b; cursor: pointer; }
+        
+        .btn-plus { flex: 1; background: var(--c); color: #fff; border: none; border-radius: 8px; height: 40px; font-size: 20px; cursor: pointer; }
+        .btn-send { background: #3b82f6; color: #fff; border: none; border-radius: 8px; width: 45px; height: 40px; cursor: pointer; }
+
+        /* --- Item List --- */
+        .items { padding: 10px; max-height: 300px; overflow-y: auto; }
+        .item { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            padding: 10px; 
+            background: #fff; 
+            border: 1px solid #f1f5f9; 
+            border-left: 4px solid var(--c);
+            border-radius: 8px;
+            margin-bottom: 6px;
+        }
+        .item-name { font-size: 14px; font-weight: bold; }
+        .item-time { font-size: 11px; color: #94a3b8; }
         .item-right { display: flex; align-items: center; gap: 10px; }
-        .qty-tag { background: #f1f5f9; padding: 4px 10px; border-radius: 6px; font-weight: 900; color: var(--c); }
-        .btn-del-mini { color: #cbd5e1; cursor: pointer; border: none; background: none; }
-        .btn-del-mini:hover { color: #ef4444; }
+        .qty-badge { background: #f1f5f9; padding: 2px 8px; border-radius: 5px; font-weight: bold; color: var(--c); }
+        .del-btn { color: #cbd5e1; border: none; background: none; cursor: pointer; padding: 5px; }
 
-        /* Admin Overlay */
-        #adminOverlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 100; padding: 15px; backdrop-filter: blur(4px); }
-        .admin-box { background: #fff; max-width: 800px; margin: 20px auto; border-radius: 16px; padding: 20px; max-height: 90vh; overflow-y: auto; }
+        /* Overlay */
+        .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 200; padding: 20px; }
+        .modal { background: #fff; border-radius: 12px; padding: 20px; max-width: 500px; margin: auto; }
     </style>
 </head>
 <body>
@@ -80,23 +120,19 @@
     <div class="topbar">
         <div class="top-row">
             <div class="brand">
-                <h1><i class="fa-solid fa-clipboard-list"></i> ระบบบันทึกงานซ่อม</h1>
-                <p>Repair Tracking System</p>
+                <h1>📋 บันทึกงานซ่อม</h1>
+                <p>Repair Daily Record</p>
             </div>
-            <button onclick="showAdmin()" style="background:none; border:1px solid rgba(255,255,255,0.3); color:#fff; border-radius:8px; padding:5px 12px; cursor:pointer;">
-                <i class="fa-solid fa-lock"></i> Admin
-            </button>
+            <button class="admin-btn" onclick="toggleAdmin()">🔒 Admin</button>
         </div>
         
-        <div class="date-ctrl">
-            <i class="fa-solid fa-chevron-left"></i>
-            <div class="date-box" id="displayDate">📅 กำลังโหลด...</div>
-            <i class="fa-solid fa-chevron-right"></i>
+        <div class="date-display">
+            <i class="fa-solid fa-chevron-left" style="opacity: 0.5"></i>
+            <span id="dateLabel">กำลังโหลดวันที่...</span>
+            <i class="fa-solid fa-chevron-right" style="opacity: 0.5"></i>
         </div>
 
-        <div class="total-banner">
-            รวมทั้งหมด <span id="grandTotal">0</span> ชิ้น
-        </div>
+        <div class="total-pill">รวมทั้งหมด <span id="grandTotal">0</span> ชิ้น</div>
     </div>
 
     <div class="wrap">
@@ -104,34 +140,22 @@
         <div class="board" id="mainBoard"></div>
     </div>
 
-    <div id="adminOverlay">
-        <div class="admin-box">
-            <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
-                <h2 style="margin:0">จัดการข้อมูล</h2>
-                <button onclick="closeAdmin()">ปิด</button>
-            </div>
-            <div id="adminContent">
-                <p style="text-align:center; color:#64748b;">ฟังชั่นรายงานและส่งออก Excel</p>
-            </div>
-        </div>
-    </div>
-
     <script>
         const categories = [
             { id: 'wait', title: 'งานรอซ่อม', icon: '🔧', color: '#ef4444' },
             { id: 'round2', title: 'งานรอบ 2', icon: '🔁', color: '#3b82f6' },
             { id: 'paint', title: 'งานพ่นสี', icon: '🎨', color: '#22c55e' },
-            { id: 'bond', title: 'งานรอ Bonding', icon: '⚙️', color: '#f59e0b' }
+            { id: 'bond', title: 'งานรอ Bond', icon: '⚙️', color: '#f59e0b' }
         ];
 
-        let data = JSON.parse(localStorage.getItem('repairData')) || [];
+        let data = JSON.parse(localStorage.getItem('repairData_v2')) || [];
 
         function render() {
             const summaryGrid = document.getElementById('summaryGrid');
             const mainBoard = document.getElementById('mainBoard');
             const now = new Date();
             
-            document.getElementById('displayDate').innerHTML = `วัน${now.toLocaleDateString('th-TH', {weekday:'long', day:'numeric', month:'long'})} <span class="today-tag">วันนี้</span>`;
+            document.getElementById('dateLabel').innerText = now.toLocaleDateString('th-TH', {day:'numeric', month:'long', year:'numeric'});
 
             summaryGrid.innerHTML = '';
             mainBoard.innerHTML = '';
@@ -142,57 +166,61 @@
                 const catQty = catItems.reduce((sum, i) => sum + i.qty, 0);
                 total += catQty;
 
-                // Render Summary
+                // 1. สรุปยอดด้านบน
                 summaryGrid.innerHTML += `
                     <div class="s-card" style="--c:${cat.color}">
-                        <div class="s-info"><div class="dot"></div>${cat.title}</div>
-                        <b>${catQty}</b>
+                        <div class="s-label">${cat.icon} ${cat.title}</div>
+                        <div class="s-value">${catQty}</div>
                     </div>
                 `;
 
-                // Render Board
+                // 2. การ์ดงานแต่ละแผนก
                 const itemsHtml = catItems.map(item => `
-                    <div class="item-row" style="--c:${cat.color}">
-                        <div class="item-info">
-                            <div>${item.name}</div>
-                            <small>${item.time}</small>
+                    <div class="item" style="--c:${cat.color}">
+                        <div>
+                            <div class="item-name">${item.name}</div>
+                            <div class="item-time">${item.time} น.</div>
                         </div>
                         <div class="item-right">
-                            <span class="qty-tag">${item.qty}</span>
-                            <button class="btn-del-mini" onclick="deleteItem('${item.id}')"><i class="fa-solid fa-trash"></i></button>
+                            <span class="qty-badge">${item.qty}</span>
+                            <button class="del-btn" onclick="deleteItem('${item.id}')"><i class="fa-solid fa-trash-can"></i></button>
                         </div>
                     </div>
-                `).join('');
+                `).reverse().join(''); // เอาอันล่าสุดขึ้นก่อน
 
                 mainBoard.innerHTML += `
                     <div class="work-card" style="--c:${cat.color}">
                         <div class="work-head">
                             <h3>${cat.icon} ${cat.title}</h3>
-                            <span style="font-weight:bold">${catQty} ชิ้น</span>
+                            <span style="font-weight:900">${catQty}</span>
                         </div>
-                        <div class="input-group">
-                            <input type="text" id="name-${cat.id}" placeholder="ชื่องาน..." style="width:100%; padding:10px; border-radius:8px; border:1px solid #cbd5e1; margin-bottom:10px;">
-                            <div class="input-main">
-                                <div class="qty-ctrl">
-                                    <button class="qty-btn" onclick="adjQty('${cat.id}', -1)">-</button>
-                                    <input type="number" id="qty-${cat.id}" value="1" readonly>
+                        <div class="input-zone">
+                            <div class="input-row-1">
+                                <input type="text" id="name-${cat.id}" placeholder="ระบุชื่องาน..." autocomplete="off">
+                            </div>
+                            <div class="input-row-2">
+                                <div class="qty-box">
+                                    <button class="qty-btn" onclick="adjQty('${cat.id}', -1)">−</button>
+                                    <input type="number" id="qty-${cat.id}" value="1">
                                     <button class="qty-btn" onclick="adjQty('${cat.id}', 1)">+</button>
                                 </div>
-                                <div class="action-btns" style="flex:1">
-                                    <button class="btn-add" onclick="addItem('${cat.id}')"><i class="fa-solid fa-plus"></i></button>
-                                    <button class="btn-send" onclick="addItem('${cat.id}')"><i class="fa-solid fa-paper-plane"></i></button>
-                                </div>
+                                <button class="btn-plus" onclick="addItem('${cat.id}')">
+                                    <i class="fa-solid fa-plus"></i>
+                                </button>
+                                <button class="btn-send" onclick="addItem('${cat.id}')">
+                                    <i class="fa-solid fa-paper-plane"></i>
+                                </button>
                             </div>
                         </div>
-                        <div class="items-list">
-                            ${itemsHtml || '<div style="text-align:center; color:#cbd5e1; padding:20px; font-size:13px;">ยังไม่มีรายการ</div>'}
+                        <div class="items">
+                            ${itemsHtml || '<div style="text-align:center; color:#94a3b8; font-size:12px; padding:10px;">ไม่มีรายการวันนี้</div>'}
                         </div>
                     </div>
                 `;
             });
 
             document.getElementById('grandTotal').innerText = total;
-            localStorage.setItem('repairData', JSON.stringify(data));
+            localStorage.setItem('repairData_v2', JSON.stringify(data));
         }
 
         function adjQty(id, val) {
@@ -221,14 +249,15 @@
         }
 
         function deleteItem(id) {
-            if(confirm('ลบรายการนี้?')) {
+            if(confirm('ลบรายการนี้ใช่หรือไม่?')) {
                 data = data.filter(i => i.id !== id);
                 render();
             }
         }
 
-        function showAdmin() { document.getElementById('adminOverlay').style.display = 'block'; }
-        function closeAdmin() { document.getElementById('adminOverlay').style.display = 'none'; }
+        function toggleAdmin() {
+            alert('ส่วนนี้ใช้สำหรับดูรายงาน (กำลังพัฒนาเพื่อเชื่อมต่อ Google Sheet)');
+        }
 
         render();
     </script>
