@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="th">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ระบบบันทึกงานซ่อม (Full History & Filter)</title>
+    
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* --- CSS เดิมทั้งหมด --- */
+        * { box-sizing: border-box; }
+        body { margin: 0; font-family: Tahoma, Arial, sans-serif; background: #eef2f7; color: #182235; }
+        .topbar { min-height: 82px; background: #1f2b3f; color: #fff; display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 14px 40px; box-shadow: 0 6px 20px rgba(0,0,0,.12); }
+        .brand { display: flex; align-items: center; gap: 14px; }
+        .brand-icon { width: 46px; height: 46px; border-radius: 10px; display: grid; place-items: center; background: rgba(255,255,255,.14); font-size: 23px; }
+        .brand h1 { margin: 0; font-size: 24px; line-height: 1.1; }
+        .brand p { margin: 5px 0 0; color: #bfd0ea; font-size: 14px; }
+        .date-nav { display: flex; align-items: center; gap: 16px; }
+        .date-box { border: 1px solid rgba(255,255,255,.20); background: rgba(255,255,255,.10); border-radius: 10px; padding: 10px 16px; font-weight: 700; display: flex; gap: 10px; align-items: center; }
+        .today-badge { background: rgba(255,255,255,.18); padding: 4px 8px; border-radius: 9px; font-size: 13px; }
+        .nav-arrow, .admin-link { color: #fff; text-decoration: none; font-size: 22px; opacity: .9; cursor: pointer; }
+        .admin-link { font-size: 16px; display: flex; gap: 8px; align-items: center; }
+        .total-pill { background: rgba(255,255,255,.10); padding: 13px 20px; border-radius: 10px; font-weight: 700; white-space: nowrap; }
+        .wrap { padding: 14px 40px 40px; }
+        .summary-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-bottom: 26px; }
+        .summary-card { border-radius: 10px; padding: 16px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border); background: var(--soft); box-shadow: 0 4px 14px rgba(0,0,0,.04); }
+        .dot { width: 13px; height: 13px; border-radius: 50%; background: var(--color); flex: 0 0 auto; }
+        .summary-left { display: flex; gap: 13px; align-items: center; }
+        .summary-title { color: var(--color); font-weight: 700; font-size: 14px; }
+        .summary-sub { color: #4b5563; font-size: 14px; margin-top: 3px; }
+        .summary-num { color: var(--color); font-weight: 900; font-size: 23px; }
+        .board { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; }
+        .work-card { background: #fff; border-radius: 14px; overflow: hidden; border: 1px solid var(--border); box-shadow: 0 7px 18px rgba(15, 23, 42, .09); }
+        .work-head { background: var(--color); color: #fff; padding: 18px 18px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+        .work-title { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 18px; }
+        .count-badge { background: rgba(255,255,255,.22); border-radius: 999px; padding: 7px 12px; font-weight: 800; white-space: nowrap; }
+        .input-row { display: grid; grid-template-columns: 1fr 132px 44px; gap: 9px; padding: 16px; border-bottom: 1px solid var(--border); background: var(--soft); }
+        input, select, textarea { width: 100%; border: 1px solid #d8dee9; border-radius: 8px; padding: 10px 12px; font-size: 15px; outline: none; background: #fff; }
+        input:focus { border-color: var(--color); box-shadow: 0 0 0 3px rgba(47,125,246,.10); }
+        .qty-box { display: grid; grid-template-columns: 36px 1fr 36px; }
+        .qty-box input { text-align: center; border-radius: 0; border-left: 0; border-right: 0; }
+        .qty-btn, .add-btn { border: 0; cursor: pointer; font-weight: 800; font-size: 18px; }
+        .qty-btn { background: #fff; border: 1px solid #d8dee9; color: #334155; }
+        .qty-btn:first-child { border-radius: 8px 0 0 8px; }
+        .qty-btn:last-child { border-radius: 0 8px 8px 0; }
+        .add-btn { background: var(--color); color: #fff; border-radius: 8px; font-size: 24px; }
+        .items { min-height: 180px; padding: 14px; background: #f8fafc; }
+        .item { background: #fff; border: 1px solid #e5e7eb; border-left: 5px solid var(--color); border-radius: 12px; padding: 12px; margin-bottom: 10px; display: grid; grid-template-columns: 1fr auto auto; gap: 12px; align-items: center; }
+        .item-name { font-weight: 800; margin-bottom: 3px; }
+        .item-date { color: #64748b; font-size: 12px; }
+        .item-qty { display: flex; align-items: center; gap: 6px; }
+        .mini-btn { width: 30px; height: 30px; border-radius: 8px; border: 1px solid #e5e7eb; background: #fff; cursor: pointer; font-weight: 900; }
+        .qty-number { min-width: 30px; text-align: center; font-weight: 900; color: var(--color); }
+        .trash-btn { background: none; border: none; color: #cbd5e1; cursor: pointer; font-size: 18px; transition: color 0.2s; padding: 4px; }
+        .trash-btn:hover { color: #ff2d3d; }
+
+        #adminOverlay, #loginOverlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; padding: 20px; backdrop-filter: blur(5px); }
+        .admin-content { background: #fff; max-width: 900px; margin: 20px auto; border-radius: 15px; padding: 25px; position: relative; box-shadow: 0 20px 40px rgba(0,0,0,0.2); overflow-y: auto; max-height: 95vh; }
+        .login-content { background: #fff; max-width: 400px; margin: 100px auto; border-radius: 15px; padding: 40px; text-align: center; }
+        
+        .export-container { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin-bottom: 25px; }
+        .filter-row { display: grid; grid-template-columns: 1fr 1fr 120px; gap: 12px; align-items: flex-end; margin-bottom: 20px; }
+        .filter-box label { display: block; font-size: 12px; font-weight: 700; color: #64748b; margin-bottom: 5px; }
+        .btn-search { background: #2f7df6; color: white; border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: 600; height: 41px; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; }
+
+        .btn-group-export { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-top: 10px; }
+        .btn-excel-card { background: #ffffff; border: 2px solid #e2e8f0; padding: 20px 10px; border-radius: 12px; cursor: pointer; transition: all 0.3s ease; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; }
+        .btn-excel-card:hover { border-color: #107c41; background: #f0fdf4; transform: translateY(-3px); }
+        .btn-excel-card i { font-size: 28px; color: #107c41; }
+
+        .admin-table { width: 100%; border-collapse: collapse; }
+        .admin-table th { background: #f1f5f9; padding: 12px; text-align: left; font-size: 13px; color: #64748b; position: sticky; top: 0; }
+        .admin-table td { border-bottom: 1px solid #f1f5f9; padding: 12px; font-size: 13px; }
+        .btn-del { background: #fee2e2; color: #ef4444; border: 0; padding: 6px 12px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 11px; }
+
+        /* --- ส่วนประวัติที่เพิ่มใหม่ --- */
+        .history-section { display: none; margin-top: 25px; padding-top: 20px; border-top: 2px dashed #e2e8f0; }
+        .history-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 15px; }
+        .history-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; position: relative; }
+        .history-header { font-weight: 800; font-size: 15px; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #f1f5f9; display: flex; align-items: center; gap: 8px; }
+        .history-item { display: flex; justify-content: space-between; font-size: 12px; padding: 4px 0; border-bottom: 1px solid #f8fafc; }
+        .history-total-pill { margin-top: 10px; background: #f1f5f9; padding: 8px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="topbar">
+        <div class="brand">
+            <div class="brand-icon">📋</div>
+            <div>
+                <h1>ระบบบันทึกงานซ่อม</h1>
+                <p>Repair Tracking System</p>
+            </div>
+        </div>
+        <div class="date-nav">
+            <a class="nav-arrow">‹</a>
+            <div class="date-box">📅 วันเสาร์ที่ 9 พฤษภาคม 2569 <span class="today-badge">วันนี้</span></div>
+            <a class="nav-arrow">›</a>
+        </div>
+        <a class="admin-link" onclick="showLogin()">🔒 Admin</a>
+        <div class="total-pill">รวมทั้งหมด <span id="grandTotal">0</span> ชิ้น</div>
+    </div>
+
+    <div class="wrap">
+        <div class="summary-grid" id="summaryGrid"></div>
+        <div class="board" id="mainBoard"></div>
+    </div>
+
+    <div id="loginOverlay">
+        <div class="login-content">
+            <h2 style="margin-top:0">ยืนยันสิทธิ์แอดมิน</h2>
+            <input type="password" id="adminPassword" placeholder="กรอกรหัสผ่าน" style="margin-bottom:20px; padding:15px; text-align:center; letter-spacing:5px">
+            <button onclick="checkPassword()" style="width:100%; padding:14px; background:#2f7df6; color:#fff; border:0; border-radius:10px; font-weight:bold; cursor:pointer;">เข้าสู่หน้าจัดการ</button>
+            <p onclick="closeLogin()" style="margin-top:20px; cursor:pointer; color:#94a3b8; font-size:14px;">ยกเลิก</p>
+        </div>
+    </div>
+
+    <div id="adminOverlay">
+        <div class="admin-content">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <h2 style="margin:0; font-size: 18px;"><i class="fa-solid fa-gears"></i> จัดการข้อมูลและรายงาน</h2>
+                <button onclick="closeAdmin()" style="cursor:pointer; border:0; background:#f1f5f9; padding:8px 15px; border-radius:8px; font-weight:600; color:#64748b;">ปิดหน้าต่าง</button>
+            </div>
+
+            <div class="export-container">
+                <div class="filter-row">
+                    <div class="filter-box">
+                        <label>เลือกวันที่ต้องการดู/รายงาน</label>
+                        <input type="date" id="filterDate">
+                    </div>
+                    <div class="filter-box">
+                        <label>หรือเลือกรายเดือน</label>
+                        <input type="month" id="filterMonth">
+                    </div>
+                    <button class="btn-search" onclick="updateAdminView()"><i class="fa-solid fa-magnifying-glass"></i> ค้นหา</button>
+                </div>
+
+                <div style="font-weight:bold; color:#1e293b; margin-bottom:12px; font-size: 13px;">ดาวน์โหลด Excel แยกตามแผนก</div>
+                <div id="categoryExportButtons" class="btn-group-export"></div>
+            </div>
+
+            <div style="max-height: 250px; overflow-y: auto; border: 1px solid #f1f5f9; border-radius: 10px; margin-bottom: 20px;">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>วัน/เวลา</th>
+                            <th>แผนก</th>
+                            <th>ชื่องาน</th>
+                            <th>จำนวน</th>
+                            <th style="text-align:center">จัดการ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminList"></tbody>
+                </table>
+            </div>
+            
+            <div style="display: flex; gap: 10px;">
+                <button onclick="clearAll()" style="flex: 1; padding:12px; background:#fff1f2; border:1px solid #fecdd3; color:#e11d48; font-weight:bold; cursor:pointer; border-radius:10px; font-size: 13px;">
+                    <i class="fa-solid fa-trash-can"></i> ล้างข้อมูลทั้งหมด
+                </button>
+                <button onclick="toggleHistory()" id="btnHistory" style="flex: 1.5; padding:12px; background:#1e293b; color:#fff; border:0; border-radius:10px; font-weight:bold; cursor:pointer; font-size: 13px;">
+                    <i class="fa-solid fa-clock-rotate-left"></i> ดูสรุปประวัติแยกแผนก
+                </button>
+            </div>
+
+            <div id="historySection" class="history-section">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h3 style="margin:0; font-size:16px;"><i class="fa-solid fa-list-check"></i> สรุปรายการงานย้อนหลัง</h3>
+                    <div style="font-size:12px; color:#64748b;" id="historyDateLabel"></div>
+                </div>
+                <div id="historyGrid" class="history-grid"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const AUTH_PASS = "1234";
+        const categories = [
+            { id: 'wait', title: 'งานรอซ่อม', icon: '🔧', color: '#ff2d3d', soft: '#fff1f2', border: '#fecdd3' },
+            { id: 'round2', title: 'งานรอบ 2', icon: '🔁', color: '#2f7df6', soft: '#eff6ff', border: '#bfdbfe' },
+            { id: 'paint', title: 'งานพ่นสี', icon: '🎨', color: '#00c853', soft: '#ecfdf5', border: '#bbf7d0' },
+            { id: 'bond', title: 'งานรอ Bonding', icon: '⚙️', color: '#ff9800', soft: '#fffbeb', border: '#fde68a' }
+        ];
+
+        let data = JSON.parse(localStorage.getItem('repairData')) || [];
+
+        function render() {
+            const summaryGrid = document.getElementById('summaryGrid');
+            const mainBoard = document.getElementById('mainBoard');
+            summaryGrid.innerHTML = '';
+            mainBoard.innerHTML = '';
+            let grandTotal = 0;
+
+            categories.forEach(cat => {
+                const catItems = data.filter(item => item.catId === cat.id);
+                const catQtyTotal = catItems.reduce((sum, item) => sum + item.qty, 0);
+                grandTotal += catQtyTotal;
+
+                summaryGrid.innerHTML += `
+                    <div class="summary-card" style="--color:${cat.color};--soft:${cat.soft};--border:${cat.border};">
+                        <div class="summary-left">
+                            <div class="dot"></div>
+                            <div>
+                                <div class="summary-title">${cat.title}</div>
+                                <div class="summary-sub">${catItems.length} รายการ</div>
+                            </div>
+                        </div>
+                        <div class="summary-num">${catQtyTotal}</div>
+                    </div>
+                `;
+
+                let itemsHtml = catItems.map(item => `
+                    <div class="item" style="--color:${cat.color}">
+                        <div>
+                            <div class="item-name">${item.name}</div>
+                            <div class="item-date">${item.displayTime}</div>
+                        </div>
+                        <div class="item-qty">
+                            <button class="mini-btn" onclick="updateItemQty('${item.id}', -1)">−</button>
+                            <div class="qty-number">${item.qty}</div>
+                            <button class="mini-btn" onclick="updateItemQty('${item.id}', 1)">+</button>
+                        </div>
+                        <button class="trash-btn" onclick="directDelete('${item.id}')">🗑️</button>
+                    </div>
+                `).join('');
+
+                mainBoard.innerHTML += `
+                    <div class="work-card" style="--color:${cat.color};--soft:${cat.soft};--border:${cat.border};">
+                        <div class="work-head">
+                            <div class="work-title"><span>${cat.icon}</span> ${cat.title}</div>
+                            <div class="count-badge">${catQtyTotal} ชิ้น</div>
+                        </div>
+                        <div class="input-row">
+                            <input id="input-name-${cat.id}" placeholder="ชื่องาน...">
+                            <div class="qty-box">
+                                <button class="qty-btn" onclick="changeQtyInput('${cat.id}', -1)">−</button>
+                                <input type="number" id="input-qty-${cat.id}" value="1" min="1">
+                                <button class="qty-btn" onclick="changeQtyInput('${cat.id}', 1)">+</button>
+                            </div>
+                            <button class="add-btn" onclick="saveItem('${cat.id}')">+</button>
+                        </div>
+                        <div class="items">${itemsHtml || '<p style="text-align:center; color:#94a3b8; font-size:13px;">ไม่มีรายการ</p>'}</div>
+                    </div>
+                `;
+            });
+
+            document.getElementById('grandTotal').innerText = grandTotal;
+            localStorage.setItem('repairData', JSON.stringify(data));
+        }
+
+        function getFilteredData() {
+            const dayFilter = document.getElementById('filterDate').value;
+            const monthFilter = document.getElementById('filterMonth').value;
+            return data.filter(item => {
+                if (dayFilter) return item.dateOnly === dayFilter;
+                if (monthFilter) return item.dateOnly.startsWith(monthFilter);
+                return true; 
+            });
+        }
+
+        function toggleHistory() {
+            const section = document.getElementById('historySection');
+            const btn = document.getElementById('btnHistory');
+            
+            if (section.style.display === 'block') {
+                section.style.display = 'none';
+                btn.innerHTML = '<i class="fa-solid fa-clock-rotate-left"></i> ดูสรุปประวัติแยกแผนก';
+            } else {
+                section.style.display = 'block';
+                btn.innerHTML = '<i class="fa-solid fa-eye-slash"></i> ปิดสรุปประวัติ';
+                updateHistoryGrid();
+                // เลื่อนลงไปดูส่วนประวัติ
+                section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+
+        function updateHistoryGrid() {
+            const grid = document.getElementById('historyGrid');
+            const label = document.getElementById('historyDateLabel');
+            const filtered = getFilteredData();
+            
+            const day = document.getElementById('filterDate').value;
+            const month = document.getElementById('filterMonth').value;
+            label.innerText = day ? `ประจำวันที่ ${day}` : (month ? `ประจำเดือน ${month}` : "แสดงข้อมูลทั้งหมด");
+
+            grid.innerHTML = categories.map(cat => {
+                const catItems = filtered.filter(i => i.catId === cat.id);
+                const catTotal = catItems.reduce((s, i) => s + i.qty, 0);
+                
+                const listHtml = catItems.map(i => `
+                    <div class="history-item">
+                        <span>${i.name}</span>
+                        <span>${i.qty}</span>
+                    </div>
+                `).join('');
+
+                return `
+                    <div class="history-card" style="border-top: 4px solid ${cat.color}">
+                        <div class="history-header" style="color:${cat.color}">${cat.icon} ${cat.title}</div>
+                        <div style="max-height:100px; overflow-y:auto; padding-right:5px;">
+                            ${listHtml || '<p style="color:#cbd5e1; text-align:center; font-size:11px;">ไม่มีข้อมูล</p>'}
+                        </div>
+                        <div class="history-total-pill">
+                            <span style="font-size:11px; color:#64748b;">รวมทั้งหมด</span>
+                            <span style="color:${cat.color}; font-size:16px;">${catTotal}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateAdminView() {
+            openAdmin();
+            if (document.getElementById('historySection').style.display === 'block') {
+                updateHistoryGrid();
+            }
+        }
+
+        function openAdmin() {
+            const list = document.getElementById('adminList');
+            const exportBtnContainer = document.getElementById('categoryExportButtons');
+            const filtered = getFilteredData();
+            
+            exportBtnContainer.innerHTML = categories.map(cat => `
+                <div class="btn-excel-card" onclick="exportToExcel('${cat.id}')">
+                    <i class="fa-solid fa-file-excel"></i>
+                    <span style="font-size:12px; font-weight:bold; margin-top:5px;">${cat.title}</span>
+                </div>
+            `).join('');
+
+            list.innerHTML = filtered.length > 0 ? filtered.map((item) => {
+                const catInfo = categories.find(c => c.id === item.catId);
+                return `
+                <tr>
+                    <td style="color:#64748b; font-size:11px;">${item.displayTime}</td>
+                    <td><span style="padding:4px 8px; border-radius:6px; font-size:10px; font-weight:bold; background:${catInfo.soft}; color:${catInfo.color}">${catInfo.title}</span></td>
+                    <td style="font-weight:600">${item.name}</td>
+                    <td style="font-weight:bold">${item.qty}</td>
+                    <td style="text-align:center"><button class="btn-del" onclick="deleteFromAdmin('${item.id}')">ลบ</button></td>
+                </tr>
+            `}).join('') : '<tr><td colspan="5" style="text-align:center; padding:30px; color:#94a3b8;">ไม่พบข้อมูล</td></tr>';
+            
+            document.getElementById('adminOverlay').style.display = 'block';
+        }
+
+        function showLogin() { document.getElementById('loginOverlay').style.display = 'block'; }
+        function closeLogin() { document.getElementById('loginOverlay').style.display = 'none'; }
+        function closeAdmin() { 
+            document.getElementById('adminOverlay').style.display = 'none'; 
+            document.getElementById('historySection').style.display = 'none';
+        }
+
+        function checkPassword() {
+            if(document.getElementById('adminPassword').value === AUTH_PASS) {
+                closeLogin();
+                openAdmin();
+                document.getElementById('adminPassword').value = '';
+            } else { alert('รหัสผ่านไม่ถูกต้อง'); }
+        }
+
+        function exportToExcel(catId) {
+            const sourceData = getFilteredData();
+            const catInfo = categories.find(c => c.id === catId);
+            const catItems = sourceData.filter(item => item.catId === catId);
+            if (catItems.length === 0) return alert('ไม่พบข้อมูล');
+            
+            const wb = XLSX.utils.book_new();
+            let wsData = [[catInfo.title], ["วันที่", "เวลา", "รายการ", "จำนวน"]];
+            catItems.forEach(i => wsData.push([i.dateOnly, i.timeOnly, i.name, i.qty]));
+            
+            const ws = XLSX.utils.aoa_to_sheet(wsData);
+            XLSX.utils.book_append_sheet(wb, ws, "Report");
+            XLSX.writeFile(wb, `Report_${catInfo.title}.xlsx`);
+        }
+
+        function saveItem(catId) {
+            const name = document.getElementById(`input-name-${catId}`);
+            const qty = document.getElementById(`input-qty-${catId}`);
+            if (!name.value.trim()) return;
+            const now = new Date();
+            const dateOnly = now.toISOString().split('T')[0];
+            const timeOnly = now.toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'});
+            data.push({
+                id: Date.now().toString(),
+                catId: catId,
+                name: name.value,
+                qty: parseInt(qty.value),
+                dateOnly: dateOnly,
+                timeOnly: timeOnly,
+                displayTime: now.toLocaleDateString('th-TH') + ' ' + timeOnly
+            });
+            name.value = ''; qty.value = '1';
+            render();
+        }
+
+        function changeQtyInput(catId, delta) {
+            const input = document.getElementById(`input-qty-${catId}`);
+            input.value = Math.max(1, parseInt(input.value) + delta);
+        }
+        function updateItemQty(id, delta) {
+            const item = data.find(i => i.id === id);
+            if(item) { item.qty = Math.max(1, item.qty + delta); render(); }
+        }
+        function directDelete(id) { if(confirm('ลบรายการนี้?')) { data = data.filter(i => i.id !== id); render(); } }
+        function deleteFromAdmin(id) { data = data.filter(i => i.id !== id); render(); openAdmin(); }
+        function clearAll() { if(confirm('ล้างข้อมูลทั้งหมด?')) { data = []; render(); closeAdmin(); } }
+
+        render();
+    </script>
+</body>
+</html>
