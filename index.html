@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-    <title>ระบบบันทึกงานซ่อม (Google Sheets Link)</title>
+    <title>ระบบบันทึกงานซ่อม (Direct Send)</title>
     
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -20,52 +20,41 @@
         .admin-btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 6px 12px; border-radius: 8px; font-size: 12px; cursor: pointer; }
 
         .date-display { background: rgba(255,255,255,0.05); padding: 10px; border-radius: 10px; text-align: center; font-size: 14px; font-weight: bold; display: flex; justify-content: center; align-items: center; gap: 15px; margin-bottom: 10px; }
-        .total-pill { background: #334155; padding: 8px; border-radius: 8px; text-align: center; font-size: 13px; font-weight: bold; }
-
+        
         /* --- Grid System --- */
         .wrap { padding: 12px; }
-        .summary-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 15px; }
         .board { display: grid; grid-template-columns: 1fr; gap: 15px; }
 
         @media (min-width: 992px) {
-            .summary-grid { grid-template-columns: repeat(4, 1fr); }
-            .board { grid-template-columns: repeat(4, 1fr); }
+            .board { grid-template-columns: repeat(2, 1fr); }
             .wrap { padding: 20px 40px; }
         }
 
         /* --- Cards Style --- */
-        .s-card { background: #fff; padding: 12px; border-radius: 10px; border-bottom: 3px solid var(--c); display: flex; flex-direction: column; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .s-label { font-size: 12px; color: #64748b; font-weight: bold; margin-bottom: 4px; display: flex; align-items: center; gap: 5px; }
-        .s-value { font-size: 20px; font-weight: 900; color: var(--c); }
-
-        .work-card { background: #fff; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; }
-        .work-head { background: var(--c); color: #fff; padding: 12px; display: flex; justify-content: space-between; align-items: center; }
-        .work-head h3 { margin: 0; font-size: 15px; }
+        .work-card { background: #fff; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .work-head { background: var(--c); color: #fff; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
+        .work-head h3 { margin: 0; font-size: 16px; letter-spacing: 0.5px; }
 
         /* --- Input Zone --- */
-        .input-zone { padding: 12px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; }
-        .input-row-1 { margin-bottom: 8px; }
-        .input-row-2 { display: flex; gap: 8px; align-items: center; }
-        input[type="text"] { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; }
-        .qty-box { display: flex; border: 1px solid #cbd5e1; border-radius: 8px; overflow: hidden; background: #fff; min-width: 100px; }
-        .qty-box input { width: 40px; border: none; text-align: center; font-weight: bold; pointer-events: none; }
-        .qty-btn { width: 30px; border: none; background: #fff; font-size: 18px; font-weight: bold; color: #64748b; cursor: pointer; }
-        .btn-plus { flex: 1; background: var(--c); color: #fff; border: none; border-radius: 8px; height: 40px; font-size: 20px; cursor: pointer; }
-        .btn-send { background: #3b82f6; color: #fff; border: none; border-radius: 8px; width: 45px; height: 40px; cursor: pointer; }
+        .input-zone { padding: 15px; background: #fff; }
+        .input-row-1 { margin-bottom: 10px; }
+        .input-row-2 { display: flex; gap: 10px; align-items: center; }
+        
+        input[type="text"] { width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 15px; transition: border-color 0.2s; }
+        input[type="text"]:focus { outline: none; border-color: var(--c); }
 
-        /* --- Item List --- */
-        .items { padding: 10px; max-height: 300px; overflow-y: auto; }
-        .item { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: #fff; border: 1px solid #f1f5f9; border-left: 4px solid var(--c); border-radius: 8px; margin-bottom: 6px; }
-        .item-name { font-size: 14px; font-weight: bold; }
-        .item-time { font-size: 11px; color: #94a3b8; }
-        .item-right { display: flex; align-items: center; gap: 10px; }
-        .qty-badge { background: #f1f5f9; padding: 2px 8px; border-radius: 5px; font-weight: bold; color: var(--c); }
-        .del-btn { color: #cbd5e1; border: none; background: none; cursor: pointer; padding: 5px; }
+        .qty-box { display: flex; border: 2px solid #e2e8f0; border-radius: 10px; overflow: hidden; background: #fff; height: 45px; }
+        .qty-box input { width: 45px; border: none; text-align: center; font-weight: bold; font-size: 16px; color: #1e293b; pointer-events: none; }
+        .qty-btn { width: 35px; border: none; background: #fff; font-size: 20px; font-weight: bold; color: #64748b; cursor: pointer; }
+        .qty-btn:active { background: #f8fafc; }
+
+        .btn-send { flex: 1; background: var(--c); color: #fff; border: none; border-radius: 10px; height: 45px; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; gap: 8px; transition: opacity 0.2s; }
+        .btn-send:active { opacity: 0.8; }
 
         /* Overlay & Modal */
         .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 200; padding: 20px; align-items: center; justify-content: center; }
         .modal { background: #fff; border-radius: 12px; padding: 20px; width: 100%; max-width: 500px; max-height: 85vh; overflow-y: auto; }
-        .history-item { padding: 8px; border-bottom: 1px solid #f1f5f9; font-size: 13px; }
+        .history-item { padding: 10px; border-bottom: 1px solid #f1f5f9; font-size: 13px; line-height: 1.4; }
     </style>
 </head>
 <body>
@@ -82,18 +71,16 @@
             <i class="fa-solid fa-calendar-day" style="opacity: 0.5"></i>
             <span id="dateLabel">กำลังโหลดวันที่...</span>
         </div>
-        <div class="total-pill">รวมทั้งหมดในเครื่อง <span id="grandTotal">0</span> ชิ้น</div>
     </div>
 
     <div class="wrap">
-        <div class="summary-grid" id="summaryGrid"></div>
         <div class="board" id="mainBoard"></div>
     </div>
 
     <div id="adminOverlay" class="overlay" onclick="if(event.target==this) closeAdmin()">
         <div class="modal">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                <h3 style="margin:0">📊 ข้อมูลจาก Google Sheets</h3>
+                <h3 style="margin:0">📊 ข้อมูลล่าสุดจาก Sheet</h3>
                 <button onclick="closeAdmin()" style="border:0; background:none; font-size:24px; cursor:pointer;">&times;</button>
             </div>
             <div id="historyContent"></div>
@@ -104,7 +91,7 @@
     </div>
 
     <script>
-        // *** สำคัญ: วาง URL ที่ได้จากการ Deploy Google Apps Script ที่นี่ ***
+        // *** สำคัญ: ตรวจสอบ URL สคริปต์ของคุณที่นี่ ***
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxeu39TheEK88DM935kGpZ_meODjvXsZyFCqk-1hItrC3Qti-EW6AsTT98VfmgSPgOwwg/exec';
 
         const categories = [
@@ -114,57 +101,38 @@
             { id: 'bond', title: 'งานรอ Bond', icon: '⚙️', color: '#f59e0b' }
         ];
 
-        let data = JSON.parse(localStorage.getItem('repairData_v2')) || [];
-        let fetchedData = []; // เก็บข้อมูลที่โหลดมาจาก Sheet
+        let fetchedData = []; 
 
         function render() {
-            const summaryGrid = document.getElementById('summaryGrid');
             const mainBoard = document.getElementById('mainBoard');
             const now = new Date();
             document.getElementById('dateLabel').innerText = now.toLocaleDateString('th-TH', {day:'numeric', month:'long', year:'numeric'});
 
-            summaryGrid.innerHTML = '';
             mainBoard.innerHTML = '';
-            let total = 0;
 
             categories.forEach(cat => {
-                const catItems = data.filter(i => i.catId === cat.id);
-                const catQty = catItems.reduce((sum, i) => sum + i.qty, 0);
-                total += catQty;
-
-                summaryGrid.innerHTML += `
-                    <div class="s-card" style="--c:${cat.color}">
-                        <div class="s-label">${cat.icon} ${cat.title}</div>
-                        <div class="s-value">${catQty}</div>
-                    </div>`;
-
-                const itemsHtml = catItems.map(item => `
-                    <div class="item" style="--c:${cat.color}">
-                        <div><div class="item-name">${item.name}</div><div class="item-time">${item.time} น.</div></div>
-                        <div class="item-right"><span class="qty-badge">${item.qty}</span>
-                        <button class="del-btn" onclick="deleteItem('${item.id}')"><i class="fa-solid fa-trash-can"></i></button></div>
-                    </div>`).reverse().join('');
-
                 mainBoard.innerHTML += `
                     <div class="work-card" style="--c:${cat.color}">
-                        <div class="work-head"><h3>${cat.icon} ${cat.title}</h3><span style="font-weight:900">${catQty}</span></div>
+                        <div class="work-head">
+                            <h3>${cat.icon} ${cat.title}</h3>
+                        </div>
                         <div class="input-zone">
-                            <div class="input-row-1"><input type="text" id="name-${cat.id}" placeholder="ระบุชื่องาน..." autocomplete="off"></div>
+                            <div class="input-row-1">
+                                <input type="text" id="name-${cat.id}" placeholder="ระบุชื่องาน ${cat.title}..." autocomplete="off">
+                            </div>
                             <div class="input-row-2">
                                 <div class="qty-box">
                                     <button class="qty-btn" onclick="adjQty('${cat.id}', -1)">−</button>
                                     <input type="number" id="qty-${cat.id}" value="1">
                                     <button class="qty-btn" onclick="adjQty('${cat.id}', 1)">+</button>
                                 </div>
-                                <button class="btn-plus" onclick="addItem('${cat.id}')"><i class="fa-solid fa-plus"></i></button>
-                                <button class="btn-send" onclick="sendToSheet('${cat.id}')"><i class="fa-solid fa-paper-plane"></i></button>
+                                <button class="btn-send" onclick="sendToSheet('${cat.id}')">
+                                    <i class="fa-solid fa-paper-plane"></i> ส่งข้อมูล
+                                </button>
                             </div>
                         </div>
-                        <div class="items">${itemsHtml || '<div style="text-align:center; color:#94a3b8; font-size:12px; padding:10px;">ไม่มีรายการวันนี้</div>'}</div>
                     </div>`;
             });
-            document.getElementById('grandTotal').innerText = total;
-            localStorage.setItem('repairData_v2', JSON.stringify(data));
         }
 
         function adjQty(id, val) {
@@ -173,85 +141,87 @@
             if(curr + val >= 1) el.value = curr + val;
         }
 
-        function addItem(catId) {
-            const n = document.getElementById(`name-${catId}`);
-            const q = document.getElementById(`qty-${catId}`);
-            if(!n.value.trim()) return;
-            data.push({ id: Date.now().toString(), catId: catId, name: n.value, qty: parseInt(q.value), time: new Date().toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'}) });
-            n.value = ''; q.value = 1; render();
-        }
-
         async function sendToSheet(catId) {
             const n = document.getElementById(`name-${catId}`);
             const q = document.getElementById(`qty-${catId}`);
-            if(!n.value.trim()) return alert('กรุณากรอกชื่องาน');
+            if(!n.value.trim()) return alert('กรุณากรอกชื่องานก่อนส่ง');
 
             const btn = event.currentTarget;
-            const originalIcon = btn.innerHTML;
+            const originalContent = btn.innerHTML;
+            
+            // UI Loading
             btn.disabled = true;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+            btn.style.opacity = '0.7';
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังส่ง...';
 
             const payload = {
                 id: Date.now().toString(),
                 catId: catId,
-                name: n.value,
+                name: n.value.trim(),
                 qty: parseInt(q.value),
                 dateOnly: new Date().toLocaleDateString('en-CA'),
                 displayTime: new Date().toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'})
             };
 
             try {
-                await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
-                // บันทึกใส่จอและเคลียร์ฟอร์ม
-                data.push({ ...payload, time: payload.displayTime });
-                n.value = ''; q.value = 1; render();
-                alert('ส่งข้อมูลเข้า Google Sheets เรียบร้อย!');
+                // ส่งข้อมูลไปที่ Google Sheets
+                await fetch(SCRIPT_URL, { 
+                    method: 'POST', 
+                    mode: 'no-cors', 
+                    body: JSON.stringify(payload) 
+                });
+
+                alert('✅ บันทึกข้อมูล' + payload.name + ' เรียบร้อย!');
+                n.value = ''; 
+                q.value = 1; 
             } catch (e) {
-                alert('เกิดข้อผิดพลาดในการส่งข้อมูล');
+                alert('❌ เกิดข้อผิดพลาด: ไม่สามารถเชื่อมต่อกับระบบได้');
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = originalIcon;
+                btn.style.opacity = '1';
+                btn.innerHTML = originalContent;
             }
         }
 
         async function toggleAdmin() {
             const historyContent = document.getElementById('historyContent');
             document.getElementById('adminOverlay').style.display = 'flex';
-            historyContent.innerHTML = '<div style="text-align:center; padding:20px;"><i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลดข้อมูลสดจาก Google Sheets...</div>';
+            historyContent.innerHTML = '<div style="text-align:center; padding:20px;"><i class="fa-solid fa-spinner fa-spin"></i> กำลังดึงข้อมูลจาก Sheets...</div>';
 
             try {
                 const res = await fetch(SCRIPT_URL);
                 fetchedData = await res.json();
                 
                 if(fetchedData.length === 0) {
-                    historyContent.innerHTML = '<p style="text-align:center;">ไม่พบข้อมูลในระบบ</p>';
+                    historyContent.innerHTML = '<p style="text-align:center; color:#64748b;">ยังไม่มีข้อมูลในระบบ</p>';
                 } else {
                     let html = '';
-                    categories.forEach(cat => {
-                        const items = fetchedData.filter(i => i.catId === cat.id);
-                        if(items.length > 0) {
-                            html += `<div style="margin-bottom:10px; border-left:4px solid ${cat.color}; padding-left:10px;">
-                                <strong style="color:${cat.color}">${cat.icon} ${cat.title}</strong><br>
-                                ${items.map(i => `<div class="history-item">${i.dateOnly} | ${i.displayTime} - <b>${i.name}</b> (${i.qty})</div>`).reverse().join('')}
+                    // เรียงข้อมูลล่าสุดขึ้นก่อน
+                    const displayData = [...fetchedData].reverse().slice(0, 50); // โชว์แค่ 50 รายการล่าสุด
+                    
+                    displayData.forEach(i => {
+                        const cat = categories.find(c => c.id === i.catId) || {color: '#64748b', icon: '📝'};
+                        html += `
+                            <div class="history-item" style="border-left: 4px solid ${cat.color}">
+                                <small style="color:#94a3b8">${i.dateOnly} | ${i.displayTime}</small><br>
+                                <strong>${cat.icon} ${i.name}</strong> - <span style="color:${cat.color}">${i.qty} ชิ้น</span>
                             </div>`;
-                        }
                     });
                     historyContent.innerHTML = html;
                 }
             } catch (e) {
-                historyContent.innerHTML = '<p style="text-align:center; color:red;">โหลดข้อมูลล้มเหลว กรุณาเช็ค URL สคริปต์</p>';
+                historyContent.innerHTML = '<p style="text-align:center; color:#ef4444;">ไม่สามารถโหลดข้อมูลได้</p>';
             }
         }
 
-        function deleteItem(id) { if(confirm('ลบรายการนี้?')) { data = data.filter(i => i.id !== id); render(); } }
         function closeAdmin() { document.getElementById('adminOverlay').style.display = 'none'; }
 
         function exportToExcel() {
-            if(fetchedData.length === 0) return alert('ไม่มีข้อมูลให้ส่งออก');
+            if(!fetchedData || fetchedData.length === 0) return alert('ไม่มีข้อมูลให้ดาวน์โหลด');
             const ws = XLSX.utils.json_to_sheet(fetchedData);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "RepairHistory");
-            XLSX.writeFile(wb, "Repair_Data_From_Sheet.xlsx");
+            XLSX.writeFile(wb, "Repair_Data.xlsx");
         }
 
         render();
