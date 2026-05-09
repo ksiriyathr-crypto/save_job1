@@ -75,13 +75,16 @@
         .admin-table td { border-bottom: 1px solid #f1f5f9; padding: 12px; font-size: 13px; }
         .btn-del { background: #fee2e2; color: #ef4444; border: 0; padding: 6px 12px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 11px; }
 
-        /* --- ส่วนประวัติที่เพิ่มใหม่ --- */
         .history-section { display: none; margin-top: 25px; padding-top: 20px; border-top: 2px dashed #e2e8f0; }
         .history-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 15px; }
         .history-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; position: relative; }
         .history-header { font-weight: 800; font-size: 15px; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #f1f5f9; display: flex; align-items: center; gap: 8px; }
         .history-item { display: flex; justify-content: space-between; font-size: 12px; padding: 4px 0; border-bottom: 1px solid #f8fafc; }
         .history-total-pill { margin-top: 10px; background: #f1f5f9; padding: 8px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; font-weight: bold; }
+        
+        /* สไตล์ใหม่สำหรับยอดสะสมปี */
+        .yearly-badge { background: #1e293b; color: #fff; padding: 10px; border-radius: 10px; margin-top: 12px; display: flex; justify-content: space-between; align-items: center; font-size: 11px; }
+        .yearly-badge b { font-size: 15px; color: #38bdf8; }
     </style>
 </head>
 <body>
@@ -95,7 +98,7 @@
         </div>
         <div class="date-nav">
             <a class="nav-arrow">‹</a>
-            <div class="date-box">📅 วันเสาร์ที่ 9 พฤษภาคม 2569 <span class="today-badge">วันนี้</span></div>
+            <div class="date-box" id="todayLabel">📅 โหลดข้อมูล...</div>
             <a class="nav-arrow">›</a>
         </div>
         <a class="admin-link" onclick="showLogin()">🔒 Admin</a>
@@ -166,7 +169,7 @@
 
             <div id="historySection" class="history-section">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <h3 style="margin:0; font-size:16px;"><i class="fa-solid fa-list-check"></i> สรุปรายการงานย้อนหลัง</h3>
+                    <h3 style="margin:0; font-size:16px;"><i class="fa-solid fa-list-check"></i> สรุปรายการงานและยอดสะสมปี</h3>
                     <div style="font-size:12px; color:#64748b;" id="historyDateLabel"></div>
                 </div>
                 <div id="historyGrid" class="history-grid"></div>
@@ -175,7 +178,10 @@
     </div>
 
     <script>
+        // --- ส่วนเชื่อมต่อ Google Sheets ---
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxRYxzVqxd1opck5KNDKWekSQGd79l9Css9J2smwFh3WJJrnfL2v0n7yOPzbn0ZngZh9g/exec"; 
         const AUTH_PASS = "1234";
+
         const categories = [
             { id: 'wait', title: 'งานรอซ่อม', icon: '🔧', color: '#ff2d3d', soft: '#fff1f2', border: '#fecdd3' },
             { id: 'round2', title: 'งานรอบ 2', icon: '🔁', color: '#2f7df6', soft: '#eff6ff', border: '#bfdbfe' },
@@ -183,11 +189,29 @@
             { id: 'bond', title: 'งานรอ Bonding', icon: '⚙️', color: '#ff9800', soft: '#fffbeb', border: '#fde68a' }
         ];
 
-        let data = JSON.parse(localStorage.getItem('repairData')) || [];
+        let data = [];
+
+        // ฟังก์ชันโหลดข้อมูลจาก Google Sheets
+        async function loadData() {
+            try {
+                const response = await fetch(SCRIPT_URL);
+                data = await response.json();
+                render();
+            } catch (e) {
+                console.error("เชื่อมต่อฐานข้อมูลไม่ได้, กำลังใช้ข้อมูลสำรองในเครื่อง");
+                data = JSON.parse(localStorage.getItem('repairData')) || [];
+                render();
+            }
+        }
 
         function render() {
             const summaryGrid = document.getElementById('summaryGrid');
             const mainBoard = document.getElementById('mainBoard');
+            const todayLabel = document.getElementById('todayLabel');
+            
+            const now = new Date();
+            todayLabel.innerHTML = `📅 วัน${now.toLocaleDateString('th-TH', {weekday:'long', day:'numeric', month:'long', year:'numeric'})} <span class="today-badge">วันนี้</span>`;
+
             summaryGrid.innerHTML = '';
             mainBoard.innerHTML = '';
             let grandTotal = 0;
@@ -262,7 +286,6 @@
         function toggleHistory() {
             const section = document.getElementById('historySection');
             const btn = document.getElementById('btnHistory');
-            
             if (section.style.display === 'block') {
                 section.style.display = 'none';
                 btn.innerHTML = '<i class="fa-solid fa-clock-rotate-left"></i> ดูสรุปประวัติแยกแผนก';
@@ -270,7 +293,6 @@
                 section.style.display = 'block';
                 btn.innerHTML = '<i class="fa-solid fa-eye-slash"></i> ปิดสรุปประวัติ';
                 updateHistoryGrid();
-                // เลื่อนลงไปดูส่วนประวัติ
                 section.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
         }
@@ -279,6 +301,7 @@
             const grid = document.getElementById('historyGrid');
             const label = document.getElementById('historyDateLabel');
             const filtered = getFilteredData();
+            const currentYear = new Date().getFullYear().toString();
             
             const day = document.getElementById('filterDate').value;
             const month = document.getElementById('filterMonth').value;
@@ -288,6 +311,11 @@
                 const catItems = filtered.filter(i => i.catId === cat.id);
                 const catTotal = catItems.reduce((s, i) => s + i.qty, 0);
                 
+                // คำนวณยอดสะสมทั้งปี
+                const yearlyTotal = data
+                    .filter(i => i.catId === cat.id && i.dateOnly.startsWith(currentYear))
+                    .reduce((s, i) => s + i.qty, 0);
+
                 const listHtml = catItems.map(i => `
                     <div class="history-item">
                         <span>${i.name}</span>
@@ -302,12 +330,62 @@
                             ${listHtml || '<p style="color:#cbd5e1; text-align:center; font-size:11px;">ไม่มีข้อมูล</p>'}
                         </div>
                         <div class="history-total-pill">
-                            <span style="font-size:11px; color:#64748b;">รวมทั้งหมด</span>
+                            <span style="font-size:11px; color:#64748b;">รวมตามช่วงเวลา:</span>
                             <span style="color:${cat.color}; font-size:16px;">${catTotal}</span>
+                        </div>
+                        <div class="yearly-badge">
+                            <span>สะสมทั้งปี (${currentYear}):</span>
+                            <b>${yearlyTotal} ชิ้น</b>
                         </div>
                     </div>
                 `;
             }).join('');
+        }
+
+        async function saveItem(catId) {
+            const name = document.getElementById(`input-name-${catId}`);
+            const qty = document.getElementById(`input-qty-${catId}`);
+            if (!name.value.trim()) return;
+
+            const now = new Date();
+            const dateOnly = now.toISOString().split('T')[0];
+            const timeOnly = now.toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'});
+            
+            const newItem = {
+                id: Date.now().toString(),
+                catId: catId,
+                name: name.value,
+                qty: parseInt(qty.value),
+                dateOnly: dateOnly,
+                timeOnly: timeOnly,
+                displayTime: now.toLocaleDateString('th-TH') + ' ' + timeOnly
+            };
+
+            // แสดงที่หน้าเว็บทันที (Optimistic Update)
+            data.push(newItem);
+            render();
+            name.value = ''; qty.value = '1';
+
+            // ส่งข้อมูลไป Google Sheets
+            try {
+                await fetch(SCRIPT_URL, {
+                    method: "POST",
+                    body: JSON.stringify(newItem)
+                });
+            } catch (e) {
+                console.warn("บันทึกลง Sheets ไม่สำเร็จ ข้อมูลจะถูกเก็บในเครื่องแทน");
+            }
+        }
+
+        // ฟังก์ชันลบข้อมูลออกจาก Admin
+        async function deleteFromAdmin(id) {
+            if(confirm('ลบรายการนี้?')) {
+                data = data.filter(i => i.id !== id);
+                render();
+                openAdmin();
+                // หมายเหตุ: การลบใน Google Sheets จริงๆ ต้องใช้ฟังก์ชันเฉพาะทาง Script
+                // ในตัวอย่างนี้จะเน้นการจัดการข้อมูลที่แสดงผลเป็นหลัก
+            }
         }
 
         function updateAdminView() {
@@ -374,26 +452,6 @@
             XLSX.writeFile(wb, `Report_${catInfo.title}.xlsx`);
         }
 
-        function saveItem(catId) {
-            const name = document.getElementById(`input-name-${catId}`);
-            const qty = document.getElementById(`input-qty-${catId}`);
-            if (!name.value.trim()) return;
-            const now = new Date();
-            const dateOnly = now.toISOString().split('T')[0];
-            const timeOnly = now.toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'});
-            data.push({
-                id: Date.now().toString(),
-                catId: catId,
-                name: name.value,
-                qty: parseInt(qty.value),
-                dateOnly: dateOnly,
-                timeOnly: timeOnly,
-                displayTime: now.toLocaleDateString('th-TH') + ' ' + timeOnly
-            });
-            name.value = ''; qty.value = '1';
-            render();
-        }
-
         function changeQtyInput(catId, delta) {
             const input = document.getElementById(`input-qty-${catId}`);
             input.value = Math.max(1, parseInt(input.value) + delta);
@@ -403,10 +461,12 @@
             if(item) { item.qty = Math.max(1, item.qty + delta); render(); }
         }
         function directDelete(id) { if(confirm('ลบรายการนี้?')) { data = data.filter(i => i.id !== id); render(); } }
-        function deleteFromAdmin(id) { data = data.filter(i => i.id !== id); render(); openAdmin(); }
         function clearAll() { if(confirm('ล้างข้อมูลทั้งหมด?')) { data = []; render(); closeAdmin(); } }
 
-        render();
+        // เริ่มโหลดข้อมูล
+        loadData();
+        // โหลดข้อมูลอัตโนมัติทุกๆ 30 วินาที เพื่อซิงค์คอมกับมือถือ
+        setInterval(loadData, 30000);
     </script>
 </body>
 </html>
