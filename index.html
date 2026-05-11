@@ -43,12 +43,14 @@
         input[type="text"] { width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 15px; transition: border-color 0.2s; }
         input[type="text"]:focus { outline: none; border-color: var(--c); }
 
-        .qty-box { display: flex; border: 2px solid #e2e8f0; border-radius: 10px; overflow: hidden; background: #fff; height: 45px; }
-        .qty-box input { width: 45px; border: none; text-align: center; font-weight: bold; font-size: 16px; color: #1e293b; pointer-events: none; }
-        .qty-btn { width: 35px; border: none; background: #fff; font-size: 20px; font-weight: bold; color: #64748b; cursor: pointer; }
+        /* ปรับขนาดกล่องจำนวนให้ใหญ่ขึ้น */
+        .qty-box { display: flex; border: 2px solid #e2e8f0; border-radius: 10px; overflow: hidden; background: #fff; height: 45px; flex: 2; }
+        .qty-box input { width: 100%; border: none; text-align: center; font-weight: bold; font-size: 18px; color: #1e293b; }
+        .qty-btn { width: 50px; border: none; background: #fff; font-size: 22px; font-weight: bold; color: #64748b; cursor: pointer; }
         .qty-btn:active { background: #f8fafc; }
 
-        .btn-send { flex: 1; background: var(--c); color: #fff; border: none; border-radius: 10px; height: 45px; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; gap: 8px; transition: opacity 0.2s; }
+        /* ปรับขนาดปุ่มส่งให้เล็กลง */
+        .btn-send { flex: 1.2; background: var(--c); color: #fff; border: none; border-radius: 10px; height: 45px; cursor: pointer; font-size: 15px; display: flex; align-items: center; justify-content: center; gap: 5px; transition: opacity 0.2s; white-space: nowrap; }
         .btn-send:active { opacity: 0.8; }
 
         /* Overlay & Modal */
@@ -91,7 +93,6 @@
     </div>
 
     <script>
-        // *** สำคัญ: ตรวจสอบ URL สคริปต์ของคุณที่นี่ ***
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxoQnCu6kiPg1lX6Aenzj4tPij00KiRK8bKNl-zOKG-IqHZKxJdOkOcUKePOlNFizs/exec';
 
         const categories = [
@@ -127,7 +128,7 @@
                                     <button class="qty-btn" onclick="adjQty('${cat.id}', 1)">+</button>
                                 </div>
                                 <button class="btn-send" onclick="sendToSheet('${cat.id}')">
-                                    <i class="fa-solid fa-paper-plane"></i> ส่งข้อมูล
+                                    <i class="fa-solid fa-paper-plane"></i> ส่ง
                                 </button>
                             </div>
                         </div>
@@ -137,45 +138,47 @@
 
         function adjQty(id, val) {
             const el = document.getElementById(`qty-${id}`);
-            let curr = parseInt(el.value);
+            let curr = parseInt(el.value) || 0;
             if(curr + val >= 1) el.value = curr + val;
+            else el.value = 1;
         }
 
         async function sendToSheet(catId) {
             const n = document.getElementById(`name-${catId}`);
             const q = document.getElementById(`qty-${catId}`);
             if(!n.value.trim()) return alert('กรุณากรอกชื่องานก่อนส่ง');
+            
+            let qtyVal = parseInt(q.value);
+            if(isNaN(qtyVal) || qtyVal < 1) return alert('กรุณาระบุจำนวนที่ถูกต้อง');
 
             const btn = event.currentTarget;
             const originalContent = btn.innerHTML;
             
-            // UI Loading
             btn.disabled = true;
             btn.style.opacity = '0.7';
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังส่ง...';
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>...';
 
             const payload = {
                 id: Date.now().toString(),
                 catId: catId,
                 name: n.value.trim(),
-                qty: parseInt(q.value),
+                qty: qtyVal,
                 dateOnly: new Date().toLocaleDateString('en-CA'),
                 displayTime: new Date().toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'})
             };
 
             try {
-                // ส่งข้อมูลไปที่ Google Sheets
                 await fetch(SCRIPT_URL, { 
                     method: 'POST', 
                     mode: 'no-cors', 
                     body: JSON.stringify(payload) 
                 });
 
-                alert('✅ บันทึกข้อมูล' + payload.name + ' เรียบร้อย!');
+                alert('✅ บันทึกเรียบร้อย!');
                 n.value = ''; 
                 q.value = 1; 
             } catch (e) {
-                alert('❌ เกิดข้อผิดพลาด: ไม่สามารถเชื่อมต่อกับระบบได้');
+                alert('❌ เกิดข้อผิดพลาด');
             } finally {
                 btn.disabled = false;
                 btn.style.opacity = '1';
@@ -186,18 +189,17 @@
         async function toggleAdmin() {
             const historyContent = document.getElementById('historyContent');
             document.getElementById('adminOverlay').style.display = 'flex';
-            historyContent.innerHTML = '<div style="text-align:center; padding:20px;"><i class="fa-solid fa-spinner fa-spin"></i> กำลังดึงข้อมูลจาก Sheets...</div>';
+            historyContent.innerHTML = '<div style="text-align:center; padding:20px;"><i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลด...</div>';
 
             try {
                 const res = await fetch(SCRIPT_URL);
                 fetchedData = await res.json();
                 
                 if(fetchedData.length === 0) {
-                    historyContent.innerHTML = '<p style="text-align:center; color:#64748b;">ยังไม่มีข้อมูลในระบบ</p>';
+                    historyContent.innerHTML = '<p style="text-align:center; color:#64748b;">ยังไม่มีข้อมูล</p>';
                 } else {
                     let html = '';
-                    // เรียงข้อมูลล่าสุดขึ้นก่อน
-                    const displayData = [...fetchedData].reverse().slice(0, 50); // โชว์แค่ 50 รายการล่าสุด
+                    const displayData = [...fetchedData].reverse().slice(0, 50);
                     
                     displayData.forEach(i => {
                         const cat = categories.find(c => c.id === i.catId) || {color: '#64748b', icon: '📝'};
@@ -210,14 +212,14 @@
                     historyContent.innerHTML = html;
                 }
             } catch (e) {
-                historyContent.innerHTML = '<p style="text-align:center; color:#ef4444;">ไม่สามารถโหลดข้อมูลได้</p>';
+                historyContent.innerHTML = '<p style="text-align:center; color:#ef4444;">โหลดไม่สำเร็จ</p>';
             }
         }
 
         function closeAdmin() { document.getElementById('adminOverlay').style.display = 'none'; }
 
         function exportToExcel() {
-            if(!fetchedData || fetchedData.length === 0) return alert('ไม่มีข้อมูลให้ดาวน์โหลด');
+            if(!fetchedData || fetchedData.length === 0) return alert('ไม่มีข้อมูล');
             const ws = XLSX.utils.json_to_sheet(fetchedData);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "RepairHistory");
